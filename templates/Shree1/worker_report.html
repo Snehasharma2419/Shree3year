@@ -1,0 +1,102 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Worker Attendance Report</title>
+
+    <!-- YOUR CSS -->
+    <link rel="stylesheet" href="{% static 'Shree1/css/worker_report.css' %}" />
+
+    <!-- ICONS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+
+  <body>
+    <div class="container">
+      <!-- ================= SIDEBAR ================= -->
+      <aside class="sidebar">
+        <div class="logo-section">
+          <div class="logo-text">
+            <h2 class="logo-name">SHREE</h2>
+          </div>
+        </div>
+
+        <nav class="nav-menu">
+          <a href="{% url 'admin_dashboard' %}" class="nav-item active">
+            <i class="fa-solid fa-table-cells-large"></i> Dashboard
+          </a>
+
+          <a href="{% url 'admin_user_management' %}" class="nav-item">
+            <i class="fa-solid fa-user-group"></i> User Management
+          </a>
+
+          <a href="{% url 'admin_attendance' %}" class="nav-item">
+            <i class="fa-regular fa-calendar-check"></i> Attendance
+          </a>
+
+          <a href="{% url 'admin_inventory' %}" class="nav-item">
+            <i class="fa-solid fa-box-open"></i> Inventory
+          </a>
+
+          <a href="{% url 'admin_leave_Management' %}" class="nav-item">
+            <i class="fa-solid fa-file-contract"></i> Leave Management
+          </a>
+
+          <a href="{% url 'admin_profile' %}" class="nav-item">
+            <i class="fa-regular fa-user"></i> Profile
+          </a>
+
+          <a href="{% url 'worker_report' %}" class="nav-item">
+            <i class="fa-regular fa-user"></i> Report
+          </a>
+        </nav>
+      </aside>
+
+      <!-- ================= MAIN CONTENT ================= -->
+      <div class="main-content">
+        <!-- HEADER -->
+        <div class="header">
+          <h2>Worker Attendance Report</h2>
+
+          <div class="header-buttons">
+            <a href="{% url 'download_report' %}" class="btn">Download PDF</a>
+            <a href="{% url 'worker_report' %}" class="btn">Refresh</a>
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Worker Name</th>
+                <th>Total Present</th>
+                <th>Total Absent</th>
+                <th>Total Leaves</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for data in report_data %}
+              <tr>
+                <td>{{ data.worker.name }}</td>
+                <td class="present">{{ data.present }}</td>
+                <td class="absent">{{ data.absent }}</td>
+                <td class="leave">{{ data.leave }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4">No data available</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

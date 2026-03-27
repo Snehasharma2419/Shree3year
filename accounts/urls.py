@@ -48,5 +48,10 @@ urlpatterns = [
     path('dispatch/', views.supplier_dispatch_item, name='supplier_dispatch_item'),
 
     path('confirm-delivery/', views.supplier_confirm_delivery, name='supplier_confirm_delivery'),
+    
+    path('worker-report/', views.worker_report, name='worker_report'),
+    
+    path('download-report/', views.download_worker_report, name='download_report'),
+    
 
 ]

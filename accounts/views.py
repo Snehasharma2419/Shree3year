@@ -54,6 +54,10 @@ def worker_signup_view(request):
         full_name = request.POST.get('full_name', '').strip()
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
+        
+        # Security fields capture karein
+        security_question = request.POST.get('security_question')
+        security_answer = request.POST.get('security_answer')
 
         # 1. Password Validation
         error = validate_password(password, confirm_password)
@@ -80,6 +84,11 @@ def worker_signup_view(request):
             password=password,
             role='worker'
         )
+        
+        # ✅ YAHAN SAVE HOGA SECURITY DATA (Corrected Indentation)
+        new_user.security_question = security_question
+        new_user.security_answer = security_answer
+        new_user.save()
 
         # 4. !!! UPDATED: Link to EXISTING Worker Profile !!!
         try:
@@ -109,6 +118,10 @@ def warden_signup_view(request):
         full_name = request.POST.get('full_name', '').strip()
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
+        
+        # Security fields capture karein
+        security_question = request.POST.get('security_question')
+        security_answer = request.POST.get('security_answer')
 
         # 2. Password Validation
         error = validate_password(password, confirm_password)
@@ -135,6 +148,11 @@ def warden_signup_view(request):
             password=password,
             role='warden'
         )
+        
+        # ✅ YAHAN SAVE HOGA SECURITY DATA (Corrected Indentation)
+        new_user.security_question = security_question
+        new_user.security_answer = security_answer
+        new_user.save()
 
         # 5. !!! CRITICAL CHANGE: Link to EXISTING Profile !!!
         # Naya create karne ke bajaye existing profile ko update karein
@@ -859,3 +877,107 @@ def warden_dashboard(request):
         'incoming_shipments': incoming_shipments, # 👈 Yeh HTML mein OTP dikhayega
         'low_stock_items': low_stock_items,
     })
+    
+from django.shortcuts import render
+from django.db.models import Count
+from .models import Worker, Attendance
+
+def worker_report(request):
+    workers = Worker.objects.all()
+    report_data = []
+
+    for worker in workers:
+        uid = worker.university_record
+        attendance = Attendance.objects.filter(worker_master=uid)
+
+        report_data.append({
+            'worker': worker,
+            'present': attendance.filter(status='Present').count(),
+            'absent': attendance.filter(status='Absent').count(),
+            'leave': attendance.filter(status='Leave').count(),
+        })
+
+    return render(request, 'Shree1/worker_report.html', {
+        'report_data': report_data
+    })
+    
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+from django.http import HttpResponse
+from datetime import date
+
+def download_worker_report(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="worker_report.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
+
+    styles = getSampleStyleSheet()
+
+    # Title
+    elements.append(Paragraph("Worker Attendance Report", styles['Title']))
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph(f"Date: {date.today()}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+
+    # Table Data
+    data = [['Worker Name', 'Present', 'Absent', 'Leave']]
+
+    workers = Worker.objects.all()
+
+    for worker in workers:
+        uid = worker.university_record
+        attendance = Attendance.objects.filter(worker_master=uid)
+
+        present = attendance.filter(status='Present').count()
+        absent = attendance.filter(status='Absent').count()
+        leave = attendance.filter(status='Leave').count()
+
+        data.append([worker.name, present, absent, leave])
+
+    # Create Table
+    table = Table(data)
+
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.blue),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    elements.append(table)
+
+    # Build PDF
+    doc.build(elements)
+
+    return response
+
+def forget_password(request):
+    if request.method == "POST":
+        username = request.POST.get('username')
+        entered_answer = request.POST.get('security_answer')
+        new_password = request.POST.get('new_password')
+
+        try:
+            user = User.objects.get(username=username)
+
+            # ✅ ANSWER MATCH
+            if user.security_answer and entered_answer and user.security_answer.strip().lower() == entered_answer.strip().lower():
+                user.set_password(new_password)
+                user.save()
+                messages.success(request, "Password reset successful")
+                if user.role == 'warden':
+                    return redirect('warden_login')
+                elif user.role == 'worker':
+                    return redirect('worker_login')
+                else:
+                    messages.error(request, "Something went wrong")
+                    return redirect('forget_password')
+
+        except User.DoesNotExist:
+            messages.error(request, "User not found")
+
+    return render(request, 'Shree1/forget_password.html')

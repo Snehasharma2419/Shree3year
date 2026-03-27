@@ -122,7 +122,7 @@ class Worker(models.Model):
 # -------------------------
 
 class Attendance(models.Model):
-    STATUS_CHOICES = [('Present', 'Present'), ('Absent', 'Absent'), ('Leave', 'Leave')]
+    STATUS_CHOICES = [('Present', 'present'), ('Absent', 'absent'), ('Leave', 'leave')]
     
     # FIXED: Linked to UniversityID so unregistered workers can have attendance
     worker_master = models.ForeignKey(UniversityID, on_delete=models.CASCADE)

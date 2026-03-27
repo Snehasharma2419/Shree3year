@@ -1,88 +1,121 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <title>Inventory - SHREE</title>
-    <link rel="stylesheet" href="{% static 'Shree1/css/dashboardAdmin.css' %}" />
-    <link rel="stylesheet" href="{% static 'Shree1/css/admin_inventory.css' %}" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="{% static 'Shree1/css/dashboardAdmin.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'Shree1/css/admin_inventory.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+  <body>
     <div class="container">
-        <aside class="sidebar">
-            <div class="logo-section">
-                <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="Logo" class="nav-logo-file">
-                <h2 class="logo-name">SHREE</h2>
-            </div>
-            <nav class="nav-menu">
-                <a href="{% url 'admin_dashboard' %}" class="nav-item"><i class="fa-solid fa-table-cells-large"></i> Dashboard</a>
-                <a href="{% url 'admin_user_management' %}" class="nav-item"><i class="fa-solid fa-users"></i> User Management</a>
-                <a href="{% url 'admin_attendance' %}" class="nav-item"><i class="fa-regular fa-calendar-check"></i> Attendance</a>
-                <a href="{% url 'admin_inventory' %}" class="nav-item active"><i class="fa-solid fa-box-open"></i> Inventory</a>
-                <a href="{% url 'admin_leave_Management' %}" class="nav-item"><i class="fa-solid fa-file-contract"></i> Leave Management</a>
-                <a href="{% url 'admin_profile' %}" class="nav-item"><i class="fa-regular fa-user"></i> Profile</a>
-            </nav>
-        </aside>
+      <aside class="sidebar">
+        <div class="logo-section">
+          <img
+            src="{% static 'Shree1/images/logo_img.jpeg' %}"
+            alt="Logo"
+            class="nav-logo-file"
+          />
+          <h2 class="logo-name">SHREE</h2>
+        </div>
+        <nav class="nav-menu">
+          <a href="{% url 'admin_dashboard' %}" class="nav-item"
+            ><i class="fa-solid fa-table-cells-large"></i> Dashboard</a
+          >
+          <a href="{% url 'admin_user_management' %}" class="nav-item"
+            ><i class="fa-solid fa-users"></i> User Management</a
+          >
+          <a href="{% url 'admin_attendance' %}" class="nav-item"
+            ><i class="fa-regular fa-calendar-check"></i> Attendance</a
+          >
+          <a href="{% url 'admin_inventory' %}" class="nav-item active"
+            ><i class="fa-solid fa-box-open"></i> Inventory</a
+          >
+          <a href="{% url 'admin_leave_Management' %}" class="nav-item"
+            ><i class="fa-solid fa-file-contract"></i> Leave Management</a
+          >
+          <a href="{% url 'admin_profile' %}" class="nav-item"
+            ><i class="fa-regular fa-user"></i> Profile</a
+          >
+          <a href="{% url 'worker_report' %}" class="nav-item"
+            ><i class="fa-regular fa-user"></i> Report
+          </a>
+        </nav>
+      </aside>
 
-        <main class="main-content">
-            <header class="page-header-row">
-                <h1>Inventory Management</h1>
-                <button class="add-btn">
-                    <i class="fa-solid fa-plus"></i> Add New Item
-                </button>
-            </header>
+      <main class="main-content">
+        <header class="page-header-row">
+          <h1>Inventory Management</h1>
+          <button class="add-btn">
+            <i class="fa-solid fa-plus"></i> Add New Item
+          </button>
+        </header>
 
-            <section class="inventory-stats">
-                <div class="stat-card">
-                    <span>Total Items</span>
-                    <h2>{{ items|length }}</h2>
-                </div>
-                <div class="stat-card">
-                    <span>Low Stock</span>
-                    <h2 class="text-orange">--</h2> </div>
-                <div class="stat-card">
-                    <span>Out of Stock</span>
-                    <h2 class="text-red">--</h2>
-                </div>
-                <div class="stat-card">
-                    <span>Status</span>
-                    <h2 class="text-green">Healthy</h2>
-                </div>
-            </section>
+        <section class="inventory-stats">
+          <div class="stat-card">
+            <span>Total Items</span>
+            <h2>{{ items|length }}</h2>
+          </div>
+          <div class="stat-card">
+            <span>Low Stock</span>
+            <h2 class="text-orange">--</h2>
+          </div>
+          <div class="stat-card">
+            <span>Out of Stock</span>
+            <h2 class="text-red">--</h2>
+          </div>
+          <div class="stat-card">
+            <span>Status</span>
+            <h2 class="text-green">Healthy</h2>
+          </div>
+        </section>
 
-            <div class="content-card">
-                <table class="inventory-table">
-                    <thead>
-                        <tr>
-                            <th>Item ID</th>
-                            <th>Item Name</th>
-                            <th>Stock Level</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in items %}
-                        <tr>
-                            <td><span class="id-badge">#{{ forloop.counter }}</span></td>
-                            <td class="font-bold">
-                                <i class="fa-solid fa-box item-icon"></i>{{ item.item_name }}
-                            </td>
-                            <td>
-                                <span class="{% if item.current_stock < 10 %}text-red{% else %}text-green{% endif %}">
-                                    {{ item.current_stock }}
-                                </span>
-                                <span class="date-sub">Units</span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" style="text-align: center; padding: 20px;">No items found in inventory.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </main>
+        <div class="content-card">
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <th>Item ID</th>
+                <th>Item Name</th>
+                <th>Stock Level</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in items %}
+              <tr>
+                <td><span class="id-badge">#{{ forloop.counter }}</span></td>
+                <td class="font-bold">
+                  <i class="fa-solid fa-box item-icon"></i>{{ item.item_name }}
+                </td>
+                <td>
+                  <span
+                    class="{% if item.current_stock < 10 %}text-red{% else %}text-green{% endif %}"
+                  >
+                    {{ item.current_stock }}
+                  </span>
+                  <span class="date-sub">Units</span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" style="text-align: center; padding: 20px">
+                  No items found in inventory.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </main>
     </div>
-</body>
+  </body>
 </html>
