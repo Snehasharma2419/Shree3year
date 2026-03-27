@@ -1,0 +1,160 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SHREE - Warden Profile</title>
+    <link
+      rel="stylesheet"
+      href="{% static 'Shree1/css/dashboardWarden.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'Shree1/css/warden_profile.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <aside class="sidebar">
+        <div class="logo-section">
+          <div class="logo-icon">S</div>
+          <div>
+            <h2 class="logo-name">SHREE</h2>
+            <p class="logo-tagline">
+              Smart Hostel Record & Employee Evaluation
+            </p>
+          </div>
+        </div>
+
+        <nav class="nav-menu">
+          <a
+            href="{% url 'warden_dashboard' %}"
+            class="nav-item {% if request.resolver_match.url_name == 'warden_dashboard' %}active{% endif %}"
+          >
+            <i class="fa-solid fa-table-columns nav-icon"></i>
+            <span>Dashboard</span>
+          </a>
+
+          <a
+            href="{% url 'attendance' %}"
+            class="nav-item {% if request.resolver_match.url_name == 'attendance' %}active{% endif %}"
+          >
+            <i class="fa-solid fa-calendar-check nav-icon"></i>
+            <span>Attendance</span>
+          </a>
+
+          <a
+            href="{% url 'inventory' %}"
+            class="nav-item {% if request.resolver_match.url_name == 'inventory' %}active{% endif %}"
+          >
+            <i class="fa-solid fa-boxes-stacked nav-icon"></i>
+            <span>Inventory</span>
+          </a>
+
+          <a
+            href="{% url 'warden_leave' %}"
+            class="nav-item {% if request.resolver_match.url_name == 'warden_leave' %}active{% endif %}"
+          >
+            <i class="fa-solid fa-envelope nav-icon"></i>
+            <span>Leave Management</span>
+          </a>
+
+          <a
+            href="{% url 'warden_profile' %}"
+            class="nav-item {% if request.resolver_match.url_name == 'warden_profile' %}active{% endif %}"
+          >
+            <i class="fa-regular fa-user nav-icon"></i>
+            <span>Profile</span>
+          </a>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="top-header">
+          <div class="user-info">
+            <span class="user-name">{{ display_name }}</span>
+            <span class="user-role">{{ display_role }}</span>
+          </div>
+        </header>
+
+        <section class="page-header">
+          <div class="header-text">
+            <h1>Profile Settings</h1>
+            <p>Manage your account details and preferences</p>
+          </div>
+        </section>
+
+        <div class="profile-card">
+          <form class="profile-form" method="POST">
+            {% csrf_token %}
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label><i class="fa-solid fa-signature"></i> Full Name</label>
+                <input
+                  type="text"
+                  name="full_name"
+                  value="{{ full_name }}"
+                  class="form-control"
+                  disabled
+                />
+              </div>
+              <div class="form-group">
+                <label
+                  ><i class="fa-solid fa-envelope"></i> Email Address</label
+                >
+                <input
+                  type="email"
+                  name="email"
+                  value="{{ email }}"
+                  class="form-control"
+                />
+              </div>
+              <div class="form-group">
+                <label><i class="fa-solid fa-phone"></i> Phone Number</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value="{{ phone }}"
+                  maxlength="10"
+                  pattern="[1-9][0-9]{9}"
+                  title="Phone number must be 10 digits and cannot start with 0"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label><i class="fa-solid fa-id-badge"></i> Warden ID</label>
+                <input
+                  type="text"
+                  value="{{ warden_id }}"
+                  readonly
+                  style="background-color: #f1f5f9"
+                />
+              </div>
+
+              <div class="form-group">
+                <label
+                  ><i class="fa-solid fa-calendar-days"></i> Date of
+                  Joining</label
+                >
+                <input type="text" value="{{ joining_date }}" readonly />
+              </div>
+            </div>
+
+            <div class="action-section">
+              <button type="submit " class="btn-save-attractive">
+                <i class="fa-solid fa-floppy-disk"></i> Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

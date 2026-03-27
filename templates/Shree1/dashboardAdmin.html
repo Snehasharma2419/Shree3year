@@ -1,0 +1,175 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SHREE - Admin Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="{% static 'Shree1/css/dashboardAdmin.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <aside class="sidebar">
+        <div class="logo-section">
+          <img
+            src="{% static 'Shree1/images/logo_img.jpeg' %}"
+            alt="SHREE Logo"
+            class="nav-logo-file"
+            style="
+              width: 50px;
+              height: 50px;
+              border-radius: 8px;
+              object-fit: contain;
+            "
+          />
+          <div>
+            <h2 class="logo-name">SHREE</h2>
+            <p style="font-size: 10px; color: #94a3b8">
+              Smart Hostel Record & Employee Evaluation
+            </p>
+          </div>
+        </div>
+
+        <nav class="nav-menu">
+          <a href="{% url 'admin_dashboard' %}" class="nav-item active">
+            <i class="fa-solid fa-table-cells-large"></i> Dashboard
+          </a>
+
+          <a href="{% url 'admin_user_management' %}" class="nav-item">
+            <i class="fa-solid fa-user-group"></i> User Management
+          </a>
+
+          <a href="{% url 'admin_attendance' %}" class="nav-item">
+            <i class="fa-regular fa-calendar-check"></i> Attendance
+          </a>
+
+          <a href="{% url 'admin_inventory' %}" class="nav-item">
+            <i class="fa-solid fa-box-open"></i> Inventory
+          </a>
+
+          <a href="{% url 'admin_leave_Management' %}" class="nav-item">
+            <i class="fa-solid fa-file-contract"></i> Leave Management
+          </a>
+
+          <a href="{% url 'admin_profile' %}" class="nav-item">
+            <i class="fa-regular fa-user"></i> Profile
+          </a>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="top-header">
+          <div class="user-info">
+            <span class="user-name">{{ admin_name|capfirst }}</span>
+            <span class="user-role">Admin</span>
+          </div>
+          <form
+            action="{% url 'logout' %}"
+            method="post"
+            style="display: inline"
+          >
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">
+              <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+          </form>
+        </header>
+
+        <section class="dashboard-intro">
+          <h1>Admin Dashboard</h1>
+          <p>
+            Welcome back, {{ admin_name|capfirst }}! Here's your system
+            overview.
+          </p>
+        </section>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-info">
+              <p>Total Wardens</p>
+              <h3>{{ warden_count }}</h3>
+            </div>
+            <div class="stat-icon blue-bg">
+              <i class="fa-solid fa-user-tie"></i>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <p>Total Workers</p>
+              <h3>{{ worker_count }}</h3>
+            </div>
+            <div class="stat-icon green-bg">
+              <i class="fa-solid fa-users"></i>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <p>Total Suppliers</p>
+              <h3>{{ supplier_count }}</h3>
+            </div>
+            <div class="stat-icon orange-bg">
+              <i class="fa-solid fa-truck-field"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="details-grid">
+          <div class="card-panel">
+            <h3>Inventory Alerts</h3>
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Current</th>
+                  <th>Required</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Rice (kg)</td>
+                  <td class="text-warning">50</td>
+                  <td>100</td>
+                </tr>
+                <tr>
+                  <td>Cooking Oil (L)</td>
+                  <td class="text-danger">15</td>
+                  <td>30</td>
+                </tr>
+                <tr>
+                  <td>Cleaning Supplies</td>
+                  <td class="text-danger">5</td>
+                  <td>20</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card-panel">
+            <h3>Recent Activities</h3>
+            <ul class="activity-list">
+              <li>
+                <span class="dot blue"></span> New worker registered
+                <small>10 mins ago</small>
+              </li>
+              <li>
+                <span class="dot green"></span> Leave approved by Warden
+                <small>25 mins ago</small>
+              </li>
+              <li>
+                <span class="dot orange"></span> Low stock alert: Oil
+                <small>1 hour ago</small>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

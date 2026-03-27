@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - SHREE</title>
+    <link rel="stylesheet" href="{% static 'Shree1/css/login.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* --- NEW: Forgot Password Link Styling (Admin Blue) --- */
+.forgot-pass-container {
+    text-align: right;
+    margin-top: -10px; /* Pulls it closer to password field */
+    margin-bottom: 20px;
+}
+
+.forgot-pass-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.forgot-pass-link:hover {
+    color: #2563eb; /* Slightly darker blue on hover */
+    text-decoration: underline;
+}
+        /* Waisa hi Red Box jaisa aapne image mein dikhaya */
+        .error-popup {
+            background-color: #fee2e2; /* Light Red background */
+            color: #991b1b;           /* Dark Red text */
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid #fecaca;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-card">
+        <a href="{% url 'welcome_role' %}" class="back-arrow"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="login-title" style="color: #3b82f6;">Admin Login</h1>
+        <p class="subtitle">Enter your credentials to access the admin portal</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="error-popup">
+                    <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'admin_login' %}">
+            {% csrf_token %}
+            <div class="input-group">
+                <label>User ID</label>
+                <input type="text" name="user_id" placeholder="Enter your user ID" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <div class="forgot-pass-container">
+                <a href="{% url 'forget_password' %}" class="forgot-pass-link">Forgot Password?</a>
+            </div>
+            <button type="submit" id="submitBtn" class="login-submit-btn" style="background-color: #3b82f6;">
+                Login
+            </button>
+        </form>
+    
+    </div>
+    <script src="{% static 'Shree1/js/login.js' %}"></script>
+</body>
+</html>

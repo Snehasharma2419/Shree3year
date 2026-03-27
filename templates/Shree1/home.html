@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHREE - Smart Hostel Record & Employee Evaluation</title>
+    <link rel="stylesheet" href="{% static 'Shree1/css/home.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-logo">
+    <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="SHREE Logo" class="nav-logo-file">
+    <span class="logo-text">SHREE</span>
+</div>
+        
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#help">Help</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+
+        <div class="nav-actions">
+            <form action="{% url 'set_language' %}" method="post" style="display: inline-block; margin-right: 10px;">
+                {% csrf_token %}
+                <select name="language" onchange="this.form.submit()" class="lang-select">
+                    <option value="en" {% if LANGUAGE_CODE == 'en' %}selected{% endif %}>EN</option>
+                    <option value="hi" {% if LANGUAGE_CODE == 'hi' %}selected{% endif %}>हिन्दी</option>
+                </select>
+            </form>
+            
+            <a href="{% url 'choose_signup' %}" class="btn-signup">Sign Up</a>
+            <a href="{% url 'login_selection' %}" class="btn-login">Login</a>
+        </div>
+    </nav>
+
+    <section id="home" class="hero">
+        <div class="hero-overlay">
+            <div class="hero-badge" style="color: blue; font-weight: bold;">
+    BANASTHALI VIDYAPITH
+</div>
+            <h1>SHREE</h1>
+            <h3>Smart Hostel Record & Employee Evaluation</h3>
+            <p>A centralized platform designed to digitize hostel administration, improve transparency, and simplify workforce management.</p>
+            <div class="hero-btns">
+                <a href="{% url 'login_selection' %}" class="hero-btn-white">Login</a>
+                <a href="#about" class="hero-btn-outline">Learn More</a>
+            </div>
+            <div class="scroll-indicator"><i class="fas fa-mouse"></i></div>
+        </div>
+    </section>
+
+    <section id="about" class="about-section">
+        <h2 class="section-title">About <span>SHREE</span></h2>
+        <div class="about-card">
+            <p>SHREE is a comprehensive digital platform specifically designed for hostel administration in educational and government institutions. The system streamlines day-to-day operations by replacing traditional paper-based processes with an efficient, centralized digital solution.</p>
+            <p>By reducing manual record-keeping and improving transparency, SHREE enables wardens and administrators to focus on what matters most—ensuring smooth hostel operations and better workforce management.</p>
+        </div>
+    </section>
+
+    <section class="features-section">
+        <h2 class="section-title">What SHREE Helps You Do</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon box-blue"><i class="fas fa-box"></i></div>
+                <h4>Digital Record Management</h4>
+                <p>Centralized system for maintaining all hostel-related records and documentation.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon box-purple"><i class="fas fa-chart-line"></i></div>
+                <h4>Structured Employee Evaluation</h4>
+                <p>Systematic framework for assessing and tracking staff performance.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon box-darkblue"><i class="fas fa-shield-alt"></i></div>
+                <h4>Centralized Administration</h4>
+                <p>Unified platform for managing all aspects of hostel operations.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon box-cyan"><i class="fas fa-clock"></i></div>
+                <h4>Secure Role-Based Access</h4>
+                <p>Controlled access ensuring data privacy and appropriate permissions.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon box-green"><i class="fas fa-globe"></i></div>
+                <h4>Multilingual Support</h4>
+                <p>Available in English and Hindi for wider accessibility.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="help" class="assistance-section">
+        <h2 class="section-title">Need Assistance?</h2>
+        <div class="assistance-grid">
+            <div class="assist-card">
+                <div class="assist-icon icon-blue"><i class="fas fa-book-open"></i></div>
+                <h4>Help & Documentation</h4>
+                <p>Access comprehensive user guides, tutorials, and frequently asked questions.</p>
+                <button class="btn-assist-blue">Browse Help Center</button>
+            </div>
+            <div class="assist-card">
+                <div class="assist-icon icon-green"><i class="fas fa-comment-dots"></i></div>
+                <h4>Contact Support</h4>
+                <p>Reach out to system administrators for technical assistance and guidance.</p>
+                <button class="btn-assist-green">Contact Us</button>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="logo-box">S</div>
+                <h3>SHREE</h3>
+                <p>Smart Hostel Record & Employee Evaluation</p>
+                <span class="footer-sub">College Project | Department of IT</span>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#">→ Help</a></li>
+                    <li><a href="#">→ Contact Us</a></li>
+                    <li><a href="#">→ Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2026 SHREE. All rights reserved.
+        </div>
+    </footer>
+
+    <script src="{% static 'Shree1/js/home.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Leave Management - SHREE</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'Shree1/css/dashboardAdmin.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'Shree1/css/admin_leave_Management.css' %}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <aside class="sidebar">
+        <div class="logo-section">
+          <img
+            src="{% static 'Shree1/images/logo_img.jpeg' %}"
+            alt="SHREE Logo"
+            class="logo-icon-img"
+          />
+          <div class="logo-text">
+            <h2 class="logo-name">SHREE</h2>
+            <p class="logo-sub">
+              Smart Hostel Record &<br />Employee Evaluation
+            </p>
+          </div>
+        </div>
+
+        <nav class="nav-menu">
+          <a href="{% url 'admin_dashboard' %}" class="nav-item"
+            ><i class="fa-solid fa-table-cells-large"></i> Dashboard</a
+          >
+          <a href="{% url 'admin_user_management' %}" class="nav-item"
+            ><i class="fa-solid fa-users"></i> User Management</a
+          >
+          <a href="{% url 'admin_attendance' %}" class="nav-item"
+            ><i class="fa-regular fa-calendar-check"></i> Attendance</a
+          >
+          <a href="{% url 'admin_inventory' %}" class="nav-item"
+            ><i class="fa-solid fa-box-open"></i> Inventory</a
+          >
+          <a href="{% url 'admin_leave_Management' %}" class="nav-item active"
+            ><i class="fa-solid fa-file-contract"></i> Leave Management</a
+          >
+          <a href="{% url 'admin_profile' %}" class="nav-item"
+            ><i class="fa-regular fa-user"></i> Profile</a
+          >
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="top-header">
+          <div class="header-titles">
+            <h1>Leave Management</h1>
+            <p>Manage employee leave requests</p>
+          </div>
+        </header>
+
+        {% if messages %}
+        <div class="messages-container">
+          {% for message in messages %}
+          <div class="alert message">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="leave-card">
+          <h3>Pending Leave Requests</h3>
+
+          <div class="table-responsive">
+            <table class="leave-table">
+              <thead>
+                <tr>
+                  <th>Worker</th>
+                  <th>Leave Type</th>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Warden</th>
+                  <th>Status</th>
+                  <th class="center-align">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for req in pending %}
+                <tr>
+                  <td class="primary-cell">
+                    {{ req.worker.name }} ({{ req.worker.worker_id }})
+                  </td>
+                  <td class="muted-cell">{{ req.leave_type }}</td>
+                  <td class="muted-cell">
+                    {{ req.start_date|date:"M. d, Y" }}
+                  </td>
+                  <td class="muted-cell">{{ req.end_date|date:"M. d, Y" }}</td>
+                  <td class="muted-cell">
+                    {{ req.warden.name }} ({{ req.warden.warden_id }})
+                  </td>
+                  <td><span class="status pending">{{ req.status }}</span></td>
+                  <td class="action-cell">
+                    <form
+                      method="POST"
+                      action="{% url 'admin_leave_Management' %}"
+                      class="action-form"
+                    >
+                      {% csrf_token %}
+                      <input
+                        type="hidden"
+                        name="leave_id"
+                        value="{{ req.id }}"
+                      />
+                      <button
+                        type="submit"
+                        name="action"
+                        value="Approved"
+                        class="btn btn-approve"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        type="submit"
+                        name="action"
+                        value="Rejected"
+                        class="btn btn-reject"
+                      >
+                        Reject
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="7" class="empty-state">
+                    No pending leave requests found.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,510 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SHREE - Leave Management</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <style>
+      :root {
+        --primary-blue: #2563eb;
+        --success-green: #10b981;
+        --danger-red: #ef4444;
+        --bg-light: #f1f5f9;
+        --border-color: #e2e8f0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Inter", sans-serif;
+      }
+      body {
+        background-color: var(--bg-light);
+        color: #1e293b;
+        display: flex;
+      }
+
+      .container {
+        display: flex;
+        width: 100%;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 260px;
+        background: white;
+        padding: 25px;
+        border-right: 1px solid var(--border-color);
+        position: fixed;
+        height: 100vh;
+      }
+      .logo-section {
+        margin-bottom: 40px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        background: #008080;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-weight: bold;
+      }
+
+      .nav-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        color: #64748b;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 500;
+      }
+      .nav-item.active,
+      .nav-item:hover {
+        background: #eff6ff;
+        color: var(--primary-blue);
+      }
+
+      /* Main Content */
+      .main-content {
+        flex: 1;
+        margin-left: 260px;
+        padding: 30px;
+      }
+      .top-header {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 20px;
+      }
+      .logout-btn {
+        background: transparent;
+        border: 1px solid var(--danger-red);
+        color: var(--danger-red);
+        padding: 8px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      /* Cards */
+      .intro-card {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .content-card {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 25px;
+      }
+
+      .btn-request {
+        background: var(--primary-blue);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      /* Table */
+      .leave-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+      .leave-table th {
+        text-align: left;
+        padding: 12px;
+        color: #64748b;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 14px;
+      }
+      .leave-table td {
+        padding: 15px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 14px;
+      }
+
+      /* Status Badges */
+      .status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .status-badge.pending {
+        background: #fff7ed;
+        color: #f97316;
+      }
+      .status-badge.approved {
+        background: #f0fdf4;
+        color: #16a34a;
+      }
+      .status-badge.rejected {
+        background: #fef2f2;
+        color: #ef4444;
+      }
+
+      /* Modal Popup */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        width: 500px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .close-btn {
+        border: none;
+        background: none;
+        font-size: 24px;
+        cursor: pointer;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+      .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 5px;
+      }
+      .form-group select,
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <aside class="sidebar">
+        <div
+          class="logo-section"
+          style="
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+          "
+        >
+          <img
+            src="{% static 'Shree1/images/logo_img.jpeg' %}"
+            alt="SHREE Logo"
+            style="
+              width: 45px;
+              height: 45px;
+              border-radius: 8px;
+              object-fit: cover;
+              display: block;
+            "
+          />
+          <div>
+            <h2
+              class="logo-name"
+              style="font-size: 18px; margin: 0; color: #1e293b"
+            >
+              SHREE
+            </h2>
+            <p
+              style="
+                font-size: 9px;
+                color: #94a3b8;
+                margin: 0;
+                line-height: 1.2;
+              "
+            >
+              Smart Hostel Record & <br />
+              Employee Evaluation
+            </p>
+          </div>
+        </div>
+        <nav class="nav-menu">
+          <a href="{% url 'warden_dashboard' %}" class="nav-item"
+            ><i class="fa-solid fa-table-columns"></i> Dashboard</a
+          >
+          <a href="{% url 'attendance' %}" class="nav-item"
+            ><i class="fa-solid fa-calendar-check"></i> Attendance</a
+          >
+          <a href="{% url 'inventory' %}" class="nav-item"
+            ><i class="fa-solid fa-boxes-stacked"></i> Inventory</a
+          >
+          <a href="{% url 'warden_leave' %}" class="nav-item active"
+            ><i class="fa-solid fa-envelope"></i> Leave Management</a
+          >
+          <a href="{% url 'warden_profile' %}" class="nav-item"
+            ><i class="fa-regular fa-user"></i> Profile</a
+          >
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="top-header">
+          <div class="user-info">
+            <span class="user-name"
+              ><strong>{{ warden.name|default:"Anita Warden" }}</strong></span
+            >
+            <span class="user-role">Warden</span>
+          </div>
+        </header>
+
+        <section class="intro-card">
+          <div>
+            <h1>Leave Management</h1>
+            <p>Manage leave requests for yourself and workers</p>
+          </div>
+          <button class="btn-request" onclick="toggleModal(true)">
+            <i class="fa-solid fa-plus"></i> Create Request
+          </button>
+        </section>
+
+        <div class="content-card">
+          <h3>Pending Leave Requests</h3>
+          <table class="leave-table">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Type</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in pending %}
+              <tr>
+                <td>
+                  <strong
+                    >{% if req.is_warden_request %}Self (Warden){% else %}{{
+                    req.worker.name }}{% endif %}</strong
+                  >
+                </td>
+                <td>{{ req.leave_type }}</td>
+                <td>{{ req.start_date|date:"M d, Y" }}</td>
+                <td>{{ req.end_date|date:"M d, Y" }}</td>
+                <td><span class="status-badge pending">Pending</span></td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td
+                  colspan="5"
+                  style="text-align: center; color: #94a3b8; padding: 20px"
+                >
+                  No pending requests found.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="content-card">
+          <h3>Recent History</h3>
+          <table class="leave-table">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Leave Type</th>
+                <th>Duration</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for h in history %}
+              <tr>
+                <td>
+                  <strong
+                    >{% if h.is_warden_request %}Self (Warden){% else %}{{
+                    h.worker.name }}{% endif %}</strong
+                  >
+                </td>
+                <td>{{ h.leave_type }}</td>
+                <td>
+                  {{ h.start_date|date:"d M" }} - {{ h.end_date|date:"d M, Y" }}
+                </td>
+                <td>
+                  <span
+                    class="status-badge {% if h.status == 'Approved' %}approved{% elif h.status == 'Rejected' %}rejected{% else %}pending{% endif %}"
+                  >
+                    {{ h.status }}
+                  </span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td
+                  colspan="5"
+                  style="text-align: center; padding: 20px; color: #64748b"
+                >
+                  No leave history available.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+
+    <div id="leaveModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>New Leave Request</h2>
+          <button class="close-btn" onclick="toggleModal(false)">
+            &times;
+          </button>
+        </div>
+        <form method="POST">
+          {% csrf_token %}
+          <div class="form-group">
+            <label>Leave for:</label>
+            <select
+              id="actionSelect"
+              name="leave_for"
+              onchange="toggleEmployeeSelect()"
+              required
+            >
+              <option value="worker">Worker (Staff)</option>
+            </select>
+          </div>
+
+          <div id="employeeSelectGroup" class="form-group">
+            <label>Select Worker</label>
+            <select name="worker_id" id="worker_id_select">
+              <option value="" disabled selected>Choose worker...</option>
+              {% for worker in workers %}
+              <option value="{{ worker.university_id }}">
+                {{ worker.full_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Leave Type</label>
+            <select name="leave_type" required>
+              <option value="Sick Leave">Sick Leave</option>
+              <option value="Casual Leave">Casual Leave</option>
+              <option value="Emergency">Emergency</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 15px">
+            <div class="form-group" style="flex: 1">
+              <label>From</label>
+              <input type="date" name="start_date" id="start_date" required />
+            </div>
+            <div class="form-group" style="flex: 1">
+              <label>To</label>
+              <input type="date" name="end_date" id="end_date" required />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="btn-request"
+            style="width: 100%; margin-top: 10px"
+          >
+            Submit Request
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Modal logic
+      window.toggleModal = function (show) {
+        const modal = document.getElementById("leaveModal");
+        if (modal) {
+          modal.style.display = show ? "flex" : "none";
+        }
+      };
+
+      // Date Constraints: Aaj se purani date disable karna
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("start_date").setAttribute("min", today);
+      document.getElementById("end_date").setAttribute("min", today);
+
+      document
+        .getElementById("start_date")
+        .addEventListener("change", function () {
+          document.getElementById("end_date").setAttribute("min", this.value);
+        });
+
+      // Dropdown toggle
+      window.toggleEmployeeSelect = function () {
+        const actionSelect = document.getElementById("actionSelect");
+        const employeeGroup = document.getElementById("employeeSelectGroup");
+        const workerSelect = document.getElementById("worker_id_select");
+
+        if (actionSelect.value === "self") {
+          employeeGroup.style.display = "none";
+          workerSelect.required = false;
+        } else {
+          employeeGroup.style.display = "block";
+          workerSelect.required = true;
+        }
+      };
+
+      window.onclick = function (event) {
+        const modal = document.getElementById("leaveModal");
+        if (event.target === modal) {
+          toggleModal(false);
+        }
+      };
+    </script>
+  </body>
+</html>

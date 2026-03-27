@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHREE - Worker Dashboard</title>
+    <link rel="stylesheet" href="{% static 'Shree1/css/dashboardWorker.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo-section">
+                <div class="logo-icon">S</div>
+                <div>
+                    <h2 class="logo-name">SHREE</h2>
+                    <p class="logo-tagline">Smart Hostel Record & Employee Evaluation</p>
+                </div>
+            </div>
+            <nav class="nav-menu">
+               <a href="{% url 'worker_dashboard' %}" class="nav-item active"><i class="fa-solid fa-table-cells-large"></i> Dashboard</a>
+               <a href="{% url 'worker_profile' %}" class="nav-item"><i class="fa-regular fa-user"></i> Profile</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+             <header class="top-header">
+    <div class="top-right">
+        <div class="user-info">
+            <div class="user-text">
+            <span class="user-name">{{ worker.name  }}</span>
+            <span class="user-role">Worker</span>
+        </div>
+
+        <a href="{% url 'welcome_role' %}" class="logout-btn">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+    </div>
+</header>
+
+            <section class="intro">
+                <h1>Worker Dashboard</h1>
+                <p>Welcome, {{worker.name }}! View your attendance, salary, and notifications.</p>
+            </section>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p>Total Attendance</p>
+                        <h3>{{ present_days }} Days</h3> </div>
+                    <div class="stat-icon blue"><i class="fa-regular fa-calendar"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p>Current Salary</p>
+                        <h3>₹15,000</h3>
+                    </div>
+                    <div class="stat-icon green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p>Notifications</p>
+                        <h3>3</h3>
+                    </div>
+                    <div class="stat-icon orange"><i class="fa-regular fa-bell"></i></div>
+                </div>
+            </div>
+
+            <div class="details-row">
+                <div class="card table-card">
+                    <h3>Recent Attendance</h3>
+                    <table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in attendance_list %}
+        <tr>
+            <td>{{ record.date }}</td>
+            <td>
+                {% if record.status == 'Present' %}
+                    <span class="badge present">Present</span>
+                {% else %}
+                    <span class="badge leave">Absent</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="2">No attendance records found yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+                </div>
+
+                <div class="card salary-card">
+                    <h3>Salary Details</h3>
+                    <div class="salary-item"><span>Basic Salary</span><span>₹12,000</span></div>
+                    <div class="salary-item"><span>Allowances</span><span>₹2,000</span></div>
+                    <div class="salary-item red-text"><span>Deductions</span><span>-₹1,000</span></div>
+                    <hr>
+                    <div class="salary-item total"><span>Net Salary</span><span>₹13,000</span></div>
+                </div>
+            </div>
+
+            <div class="card notify-card">
+                <h3>Notifications</h3>
+                <div class="notification">
+                    <i class="fa-regular fa-bell"></i> 
+                    <div>Salary credited for December 2025 <br><small>2 days ago</small></div>
+                </div>
+                <div class="notification">
+                    <i class="fa-regular fa-bell"></i> 
+                    <div>Leave application approved <br><small>5 days ago</small></div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

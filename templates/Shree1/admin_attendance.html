@@ -1,0 +1,203 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attendance - SHREE</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'Shree1/css/dashboardAdmin.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'Shree1/css/admin_attendance.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="page-container">
+      <aside class="sidebar">
+        <div class="logo-area">
+          <img
+            src="{% static 'Shree1/images/logo_img.jpeg' %}"
+            alt="Logo"
+            class="sidebar-logo"
+          />
+          <div class="logo-text">
+            <h2 class="brand-name">SHREE</h2>
+            <p class="brand-sub">Smart Hostel Record & Evaluation</p>
+          </div>
+        </div>
+        <nav class="side-nav">
+          <a href="{% url 'admin_dashboard' %}" class="nav-link"
+            ><i class="fa-solid fa-table-cells-large"></i> Dashboard</a
+          >
+          <a href="{% url 'admin_user_management' %}" class="nav-link"
+            ><i class="fa-solid fa-users"></i> User Management</a
+          >
+          <a href="{% url 'admin_attendance' %}" class="nav-link active"
+            ><i class="fa-regular fa-calendar-check"></i> Attendance</a
+          >
+          <a href="{% url 'admin_inventory' %}" class="nav-link"
+            ><i class="fa-solid fa-box-open"></i> Inventory</a
+          >
+          <a href="{% url 'admin_leave_Management' %}" class="nav-link"
+            ><i class="fa-solid fa-file-contract"></i> Leave Management</a
+          >
+          <a href="{% url 'admin_profile' %}" class="nav-link"
+            ><i class="fa-regular fa-user"></i> Profile</a
+          >
+        </nav>
+      </aside>
+
+      <main class="main-body">
+        <header class="main-header">
+          <div class="header-left">
+            <h1>Attendance Management</h1>
+            <p>Mark and manage employee attendance</p>
+          </div>
+          <div class="header-right">
+            <button type="submit" form="attendanceForm" class="save-btn">
+              <i class="fa-solid fa-floppy-disk"></i> Save Attendance
+            </button>
+          </div>
+        </header>
+
+        <div class="white-card">
+          <div class="date-selector-row">
+            <div class="date-box">
+              <i class="fa-regular fa-calendar"></i>
+              <input
+                type="date"
+                id="attendanceDate"
+                name="attendance_date"
+                value="{{ current_date_str }}"
+                max="{{ today_str }}"
+                onchange="fetchAttendanceForDate(this.value)"
+              />
+            </div>
+            <span class="label-text">Select Date to view records</span>
+          </div>
+
+          <form method="POST" id="attendanceForm">
+            {% csrf_token %}
+            <input
+              type="hidden"
+              name="save_date"
+              id="hiddenSaveDate"
+              value="{{ current_date_str }}"
+            />
+
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Worker Master</th>
+                  <th>Warden</th>
+                  <th>Attendance Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for worker in workers %}
+                <tr>
+                  <td class="name-cell">
+                    {{ worker.worker_id }} - {{ worker.name }}
+                  </td>
+                  <td class="muted-cell">
+                    {{ worker.warden_name }} ({{ worker.warden_id }})
+                  </td>
+                  <td>
+                    <div class="toggle-group">
+                      <input
+                        type="radio"
+                        name="status_{{ worker.worker_id }}"
+                        value="Present"
+                        id="p_{{ worker.worker_id }}"
+                        {%
+                        if
+                        worker.status|lower=""
+                        ="present"
+                        %}checked="checked"
+                        {%
+                        endif
+                        %}
+                      />
+                      <label for="p_{{ worker.worker_id }}" class="lbl-present"
+                        >Present</label
+                      >
+
+                      <input
+                        type="radio"
+                        name="status_{{ worker.worker_id }}"
+                        value="Absent"
+                        id="a_{{ worker.worker_id }}"
+                        {%
+                        if
+                        worker.status|lower=""
+                        ="absent"
+                        %}checked="checked"
+                        {%
+                        endif
+                        %}
+                      />
+                      <label for="a_{{ worker.worker_id }}" class="lbl-absent"
+                        >Absent</label
+                      >
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td
+                    colspan="3"
+                    style="text-align: center; padding: 20px; color: #64748b"
+                  >
+                    No records found for this date.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </form>
+
+          <div class="summary-section">
+            <h3>Attendance Summary</h3>
+            <div class="summary-grid">
+              <div class="sum-card green-sum">
+                <span>Present</span>
+                <h2 id="present-count">{{ present_count }}</h2>
+              </div>
+              <div class="sum-card red-sum">
+                <span>Absent</span>
+                <h2 id="absent-count">{{ absent_count }}</h2>
+              </div>
+              <div class="sum-card blue-sum">
+                <span>Attendance Rate</span>
+                <h2 id="attendance-rate">0%</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="{% static 'Shree1/js/admin_attendance.js' %}"></script>
+    <script>
+      function fetchAttendanceForDate(selectedDate) {
+        window.location.href = "?date=" + selectedDate;
+      }
+      document
+        .getElementById("attendanceDate")
+        .addEventListener("change", function () {
+          document.getElementById("hiddenSaveDate").value = this.value;
+        });
+    </script>
+  </body>
+</html>

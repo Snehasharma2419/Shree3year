@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'Shree1/css/signup.css' %}">
+    <title>Create Account - Supplier</title>
+</head>
+<body>
+    <div class="signup-container">
+        <a href="{% url 'choose_signup' %}" style="text-decoration: none; color: #666; font-size: 1.2rem;">← Back</a>
+        
+        <h1>Create Your Account</h1>
+        <p class="subtitle">Join us as a <strong>Supplier</strong></p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div style="padding: 10px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px; text-align: center;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="POST" action="{% url 'supplier_signup' %}">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Supplier ID</label>
+                <input type="text" name="user_id" placeholder="Enter your university Supplier ID" required>
+            </div>
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="full_name" placeholder="Enter your full name" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Create a password" required>
+            </div>
+
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" name="confirm_password" placeholder="Confirm your password" required>
+            </div>
+            
+            <button type="submit" class="signup-btn">Sign Up as Supplier</button>
+        </form>
+        
+        <p class="footer-text" style="margin-top: 20px; text-align: center;">
+            Already have an account? <a href="{% url 'welcome_role' %}">Log in</a>
+        </p>
+    </div>
+</body>
+</html>

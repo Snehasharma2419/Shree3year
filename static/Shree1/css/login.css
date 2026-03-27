@@ -1,0 +1,129 @@
+/* Modern Root Variables for easy color changes */
+:root {
+    --primary: #3b82f6;      /* Admin Blue */
+    --warden: #10b981;       /* Warden Green */
+    --worker: #f97316;       /* Worker Orange */
+    --supplier: #a855f7;     /* Supplier Purple */
+    --bg-light: #f3f4f6;
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background: radial-gradient(circle at top right, #e0e7ff, #f3f4f6);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* The Login Card with Glass Effect */
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 3rem;
+    border-radius: 24px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+/* Back Arrow Styling */
+.back-arrow {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s, color 0.2s;
+}
+
+.back-arrow:hover {
+    background: #f3f4f6;
+    color: var(--primary);
+}
+
+/* Typography */
+.login-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin: 1.5rem 0 0.5rem;
+    letter-spacing: -0.025em;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 2.5rem;
+    line-height: 1.5;
+}
+
+/* Form Styling */
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* The Login Button - Default State */
+.login-submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: #111827; /* Dark Neutral */
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: not-allowed;
+    opacity: 0.7;
+    margin-top: 1rem;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Active "Smart" State (Added by JS) */
+.btn-grow {
+    opacity: 1 !important;
+    cursor: pointer !important;
+    transform: scale(1.05);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}

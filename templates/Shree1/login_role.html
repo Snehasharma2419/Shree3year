@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login – SHREE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Login Role CSS -->
+    <link rel="stylesheet" href="{% static 'Shree1/css/login_role.css' %}?v=1" />
+
+    <!-- Font Awesome (optional, only if you use icons) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Welcome</h1>
+      <p>Select your role to continue</p>
+
+      <div class="role-grid">
+        <!-- Admin -->
+        <a href="{% url 'admin_login' %}" class="role-card admin-card">
+          <div class="card-overlay">
+            <h2>Admin</h2>
+            <span>Secure login →</span>
+          </div>
+        </a>
+
+        <!-- Warden -->
+        <a href="{% url 'warden_login' %}" class="role-card warden-card">
+          <div class="card-overlay">
+            <h2>Warden</h2>
+            <span>Login →</span>
+          </div>
+        </a>
+
+        <!-- Worker -->
+        <a href="{% url 'worker_login' %}" class="role-card worker-card">
+          <div class="card-overlay">
+            <h2>Worker</h2>
+            <span>Login →</span>
+          </div>
+        </a>
+
+        <!-- Supplier -->
+        <a href="{% url 'supplier_login' %}" class="role-card supplier-card">
+          <div class="card-overlay">
+            <h2>Supplier</h2>
+            <span>Login →</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="footer-links">
+        <a href="{% url 'choose_signup' %}">Don’t have an account? Sign up</a>
+      </div>
+    </div>
+  </body>
+</html>

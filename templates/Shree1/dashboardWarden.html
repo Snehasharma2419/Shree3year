@@ -1,0 +1,133 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHREE - Warden Dashboard</title>
+    <link rel="stylesheet" href="{% static 'Shree1/css/dashboardWarden.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo-section">
+                <div class="logo-icon">S</div>
+                <div>
+                    <h2 class="logo-name">SHREE</h2>
+                    <p class="logo-tagline">Smart Hostel System</p>
+                </div>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active"><i class="fa-solid fa-table-cells-large"></i> Dashboard</a>
+                <a href="{% url 'attendance' %}" class="nav-item"><i class="fa-regular fa-calendar-check"></i> Attendance</a>
+                <a href="{% url 'inventory' %}" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a>
+                <a href="{% url 'warden_leave' %}" class="nav-item"><i class="fa-regular fa-file-lines"></i> Leave Management</a>
+                <a href="{% url 'warden_profile' %}" class="nav-item"><i class="fa-regular fa-user"></i> Profile</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="user-info">
+                    <span class="user-name">{{ warden.name|default:"Anita Warden" }}</span>
+                    <span class="user-role">Warden</span>
+                </div>
+                <form action="{% url 'logout' %}" method="POST" style="margin-left: 20px;">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">Logout</button>
+                </form>
+            </header>
+
+            <section class="dashboard-intro">
+                <h1>Warden Dashboard</h1>
+                <p>Welcome back! Overview of your hostel status.</p>
+            </section>
+
+            {% if incoming_shipments %}
+            <div class="otp-display-card">
+                <span class="incoming-badge"><i class="fa-solid fa-truck-fast"></i> DELIVERY AT GATE</span>
+                <h3 style="margin: 0; color: #1e293b;">Active Verification Code</h3>
+                <p style="font-size: 0.9rem; color: #64748b; margin-top: 5px;">
+                    Share this code with the supplier to confirm the delivery.
+                </p>
+                
+                <div class="otp-number">{{ incoming_shipments.0.otp }}</div>
+                
+                <div style="font-size: 0.85rem; color: #475569;">
+                    <strong>Items:</strong> 
+                    {% for shipment in incoming_shipments %}
+                        {{ shipment.item.item_name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p>Managed Workers</p>
+                        <h3>{{ worker_count }}</h3>
+                    </div>
+                    <div class="stat-icon blue-bg"><i class="fa-solid fa-users"></i></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p>Low Stock Items</p>
+                        <h3>{{ low_stock_items|length }}</h3>
+                    </div>
+                    <div class="stat-icon red-bg"><i class="fa-solid fa-box-open"></i></div>
+                </div>
+            </div>
+
+            <div class="main-layout-grid">
+                <div class="card-panel-left">
+                    <h3>Low Stock Alert</h3>
+                    <table class="stock-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Current</th>
+                                <th>Required</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in low_stock_items %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td class="text-danger">{{ item.current }}</td>
+                                <td>{{ item.required }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" style="text-align: center;">All items are in good stock.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <div class="card-panel-small" style="margin-top: 20px;">
+                        <h3>Important Contacts</h3>
+                        <div class="contact-box">
+                            <strong>Admin Office</strong>
+                            <span>+91 98765 43210</span>
+                        </div>
+                        <div class="contact-box">
+                            <strong>Chief Warden</strong>
+                            <span>+91 98765 00000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="side-column-right">
+                    <div class="btn-stack">
+                        <a href="{% url 'attendance' %}" class="btn btn-primary" style="display: block; text-align: center; margin-bottom: 10px; text-decoration: none; padding: 12px; border-radius: 8px;">Mark Attendance</a>
+                        <a href="{% url 'inventory' %}" class="btn btn-success" style="display: block; text-align: center; text-decoration: none; padding: 12px; border-radius: 8px;">Update Inventory</a>
+                    </div>
+
+                    
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

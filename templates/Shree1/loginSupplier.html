@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Login - SHREE</title>
+    <link rel="stylesheet" href="{% static 'Shree1/css/login.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* --- NEW: Forgot Password Link Styling (Supplier Purple) --- */
+.forgot-pass-container {
+    text-align: right;
+    margin-top: -10px; /* Pulls it closer to password field */
+    margin-bottom: 20px;
+}
+
+.forgot-pass-link {
+    color: #a855f7; /* Supplier Purple Theme */
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.forgot-pass-link:hover {
+    color: #9333ea; /* Slightly darker purple on hover */
+    text-decoration: underline;
+}
+        /* Red Banner Style for Errors */
+        .error-banner {
+            background-color: #fee2e2; /* Light red */
+            color: #991b1b;           /* Dark red text */
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #fecaca;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <a href="{% url 'welcome_role' %}" class="back-arrow">←</a>
+        <h1 class="login-title" style="color: #a855f7;">Supplier Login</h1>
+        <p class="subtitle">Enter your credentials to access the supplier portal</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="error-banner">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'supplier_login' %}">
+            {% csrf_token %}
+            <div class="input-group">
+                <label>Supplier ID</label>
+                <input type="text" name="supplier_id" placeholder="Enter your supplier ID" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Enter your password" required>
+            </div>
+            <div class="forgot-pass-container">
+                <a href="{% url 'forget_password' %}" class="forgot-pass-link">Forgot Password?</a>
+            </div>
+            <button type="submit" class="login-submit-btn" style="background-color: #a855f7;">Login</button>
+        </form>
+        
+    </div>
+    <script src="{% static 'Shree1/js/login.js' %}"></script>
+</body>
+</html>

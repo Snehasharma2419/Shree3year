@@ -1,0 +1,221 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SHREE - Attendance Management</title>
+    <link
+      rel="stylesheet"
+      href="{% static 'Shree1/css/dashboardWarden.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'Shree1/css/warden_attendance.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <aside class="sidebar">
+        <div class="logo-section">
+          <div class="logo-icon">S</div>
+          <div>
+            <h2 class="logo-name">SHREE</h2>
+            <p class="logo-tagline">Smart Hostel Record</p>
+          </div>
+        </div>
+        <nav class="nav-menu">
+          <a href="{% url 'warden_dashboard' %}" class="nav-item"
+            ><i class="fa-solid fa-table-cells-large"></i> Dashboard</a
+          >
+          <a href="{% url 'attendance' %}" class="nav-item active"
+            ><i class="fa-solid fa-calendar-check"></i> Attendance</a
+          >
+          <a href="{% url 'inventory' %}" class="nav-item"
+            ><i class="fa-solid fa-boxes-stacked"></i> Inventory</a
+          >
+          <a href="{% url 'warden_leave' %}" class="nav-item"
+            ><i class="fa-solid fa-envelope-open-text"></i> Leave Management</a
+          >
+          <a href="{% url 'warden_profile' %}" class="nav-item"
+            ><i class="fa-regular fa-user"></i> Profile</a
+          >
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <form method="POST" id="attendanceForm">
+          {% csrf_token %}
+          <header class="top-header">
+            <div class="user-info">
+              <span class="user-name">{{ warden.name }}</span>
+              <span class="user-role">Warden</span>
+            </div>
+          </header>
+
+          <section class="attendance-header">
+            <div>
+              <h1>Attendance Management</h1>
+              <p>Mark and manage employee attendance</p>
+            </div>
+            <button type="submit" class="save-btn" id="saveBtn">
+              <i class="fa-solid fa-floppy-disk"></i> Save Attendance
+            </button>
+          </section>
+
+          <div class="attendance-card">
+            <div class="date-picker-section">
+              <div class="input-group">
+                <i class="fa-regular fa-calendar"></i>
+                <input
+                  type="date"
+                  name="attendance_date"
+                  value="{{ today }}"
+                  id="attendanceDate"
+                  min="{{ today }}"
+                  max="{{ today }}"
+                  required
+                />
+              </div>
+              <span>Select Date</span>
+            </div>
+
+            <table class="attendance-table">
+              <thead>
+                <tr>
+                  <th>Employee Name</th>
+                  <th>Role</th>
+                  <th>University ID</th>
+                  <th>Attendance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for worker in workers %}
+                <tr>
+                  <td>{{ worker.full_name }}</td>
+                  <td>{{ worker.role|capfirst }}</td>
+                  <td>{{ worker.university_id }}</td>
+                  <td>
+                    <div class="attendance-btns">
+                      <input
+                        type="hidden"
+                        name="status_{{ worker.university_id }}"
+                        id="input_{{ worker.university_id }}"
+                        value="Present"
+                      />
+
+                      <button
+                        type="button"
+                        class="status-btn btn-present active"
+                        data-worker="{{ worker.university_id }}"
+                        data-status="Present"
+                      >
+                        Present
+                      </button>
+
+                      <button
+                        type="button"
+                        class="status-btn btn-absent"
+                        data-worker="{{ worker.university_id }}"
+                        data-status="Absent"
+                      >
+                        Absent
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="summary-section">
+            <h3>Attendance Summary</h3>
+            <div class="summary-grid">
+              <div class="summary-card present-card">
+                <p>Present</p>
+                <h4 id="presentCountDisplay">0</h4>
+              </div>
+              <div class="summary-card absent-card">
+                <p>Absent</p>
+                <h4 id="absentCountDisplay">0</h4>
+              </div>
+              <div class="summary-card leave-card">
+                <p>On Leave</p>
+                <h4 id="leaveCountDisplay">0</h4>
+              </div>
+              <div class="summary-card rate-card">
+                <p>Attendance Rate</p>
+                <h4 class="blue-text" id="rateDisplay">0%</h4>
+              </div>
+            </div>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const buttons = document.querySelectorAll(".status-btn");
+
+        // Page load hote hi summary update karein
+        updateSummary();
+
+        buttons.forEach((button) => {
+          button.addEventListener("click", function () {
+            const workerId = this.getAttribute("data-worker");
+            const status = this.getAttribute("data-status");
+            const btnContainer = this.closest(".attendance-btns");
+
+            // 1. HIDDEN INPUT UPDATE (Django ke liye)
+            const hiddenInput = document.getElementById("input_" + workerId);
+            if (hiddenInput) {
+              hiddenInput.value = status;
+            }
+
+            // 2. UI UPDATE (Active class lagana)
+            btnContainer
+              .querySelectorAll(".status-btn")
+              .forEach((btn) => btn.classList.remove("active"));
+            this.classList.add("active");
+
+            // 3. SUMMARY UPDATE (Isse cards update honge)
+            updateSummary();
+          });
+        });
+
+        function updateSummary() {
+          const total = document.querySelectorAll(
+            ".attendance-table tbody tr",
+          ).length;
+
+          // --- YAHAN Galti thi, Leave count add kiya hai ---
+          const present = document.querySelectorAll(
+            ".btn-present.active",
+          ).length;
+          const absent = document.querySelectorAll(".btn-absent.active").length;
+          const leave = document.querySelectorAll(".btn-leave.active").length; // NAYA LINE
+
+          // UI par numbers dikhana
+          document.getElementById("presentCountDisplay").innerText = present;
+          document.getElementById("absentCountDisplay").innerText = absent;
+
+          // YEH LINE LEAVE CARD KO DYNAMIC BANAYEGI
+          if (document.getElementById("leaveCountDisplay")) {
+            document.getElementById("leaveCountDisplay").innerText = leave;
+          }
+
+          // Rate update karna
+          if (total > 0) {
+            const rate = Math.round((present / total) * 100);
+            document.getElementById("rateDisplay").innerText = rate + "%";
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

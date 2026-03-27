@@ -1,0 +1,118 @@
+/* 1. Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    background-color: #f8fafc; /* Subtle light grey background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* 2. The Main Card (Matches your photo) */
+/* 2. The Main Card Container */
+.signup-container {
+    background: #ffffff;
+    padding: 40px;
+    
+    /* ADD THESE LINES FOR THE BORDER */
+    border: 1px solid #e2e8f0; /* This creates the light grey border seen in the image */
+    border-radius: 20px;       /* Modern rounded corners */
+    
+    /* Soft shadow to give it depth */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03); 
+    
+    width: 100%;
+    max-width: 440px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: #64748b;
+    font-size: 1rem;
+    margin-bottom: 30px;
+}
+
+/* 3. Input Groups */
+.form-group {
+    text-align: left;
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #334155;
+    font-size: 0.9rem;
+}
+
+/* 4. Styled Inputs (Matches the rounded inputs in your screenshot) */
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid #e2e8f0; /* Subtle border color */
+    border-radius: 10px;
+    font-size: 1rem;
+    color: #1e293b;
+    background-color: #ffffff;
+    transition: all 0.2s ease-in-out;
+}
+
+.form-group input::placeholder {
+    color: #94a3b8;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #2563eb; /* Blue border on focus */
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+/* 5. The Blue Button (Vibrant blue from your 2nd image) */
+.signup-btn {
+    width: 100%;
+    background-color: #1a56db; 
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s ease;
+}
+
+.signup-btn:hover {
+    background-color: #1e429f;
+}
+
+/* 6. Footer Log-in Link */
+.footer-text {
+    margin-top: 24px;
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+.footer-text a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.footer-text a:hover {
+    text-decoration: underline;
+}

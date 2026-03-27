@@ -1,0 +1,335 @@
+/* =========================================
+   1. THEME VARIABLES 
+   Change these to update the whole site
+   ========================================= */
+:root {
+    /* Colors */
+    --primary-blue: #1a56db;
+    --secondary-blue: #1e3a8a;
+    --dark-navy: #0f172a;
+    --accent-green: #10b981;
+    --bg-light: #f8fafc;
+    --text-dark: #111827;
+    --text-muted: #4b5563;
+    --white: #ffffff;
+
+    /* Spacing & Borders */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 20px;
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    --transition: 0.3s ease;
+}
+
+/* =========================================
+   2. GLOBAL STYLES
+   ========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body { 
+    font-family: 'Segoe UI', Roboto, sans-serif; 
+    background-color: var(--bg-light); 
+    color: var(--text-dark);
+    line-height: 1.6;
+    scroll-behavior: smooth; 
+}
+
+a { text-decoration: none; transition: var(--transition); }
+
+/* =========================================
+   3. NAVIGATION BAR
+   ========================================= */
+.navbar { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 15px 5%; 
+    background: var(--white); 
+    position: sticky; 
+    top: 0; 
+    z-index: 1000; 
+    box-shadow: var(--shadow); 
+}
+
+.nav-logo-file {
+    /* Increased size from 45px to 65px */
+    width: 65px;            
+    height: 65px;           
+    
+    /* Keeps the full image visible without cropping */
+    object-fit: contain;    
+    
+    /* Clean alignment with the text */
+    margin-right: 15px;
+    vertical-align: middle;
+    
+    /* Optional styling */
+    border-radius: 5px;     
+    background-color: transparent; 
+}
+
+/* Keeps the old 'S' hidden */
+.logo-icon, .logo-icon-sm {
+    display: none !important;
+}
+
+.nav-links { 
+    list-style: none; 
+    display: flex; 
+    gap: 25px; 
+}
+
+.nav-links a { 
+    color: var(--text-muted); 
+    font-weight: 500; 
+}
+
+.nav-links a:hover { color: var(--primary-blue); }
+
+.nav-actions { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+}
+
+/* Navbar Buttons */
+.btn-signup { 
+    border: 1px solid #d1d5db; 
+    padding: 8px 16px; 
+    border-radius: var(--radius-sm); 
+    color: var(--text-dark); 
+}
+
+.btn-login { 
+    background: var(--secondary-blue); 
+    color: var(--white); 
+    padding: 8px 16px; 
+    border-radius: var(--radius-sm); 
+}
+
+.btn-login:hover { background: var(--primary-blue); }
+
+.lang-select {
+    border: none;
+    background: transparent;
+    font-weight: 500;
+    color: #4b5563;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 5px;
+    outline: none;
+}
+
+.lang-select:hover {
+    color: var(--primary-blue);
+}
+
+/* =========================================
+   4. HERO SECTION
+   ========================================= */
+.hero { 
+    height: 85vh; 
+    background: url('../images/hostel_img.jpg') center/cover no-repeat; 
+    position: relative; 
+}
+
+.hero-overlay { 
+    background: rgba(0, 0, 0, 0.5); 
+    height: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    text-align: center; 
+    padding: 0 20px; 
+    color: var(--white);
+}
+
+.hero-badge { 
+    background: rgba(255, 255, 255, 0.2); 
+    padding: 10px 20px; 
+    border-radius: 30px; 
+    display: flex; 
+    gap: 10px; 
+    margin-bottom: 20px; 
+}
+
+.hero h1 { 
+    font-size: 5rem; 
+    margin: 0; 
+    letter-spacing: 5px; 
+    font-weight: 800;
+}
+
+.hero p { 
+    max-width: 700px; 
+    font-size: 1.2rem; 
+    margin-bottom: 30px; 
+    opacity: 0.9; 
+}
+
+.hero-btns { display: flex; gap: 20px; }
+
+.hero-btn-white { 
+    background: var(--white); 
+    color: var(--primary-blue); 
+    padding: 15px 30px; 
+    border-radius: var(--radius-sm); 
+    font-weight: bold; 
+}
+
+.hero-btn-outline { 
+    border: 2px solid var(--white); 
+    color: var(--white); 
+    padding: 15px 30px; 
+    border-radius: var(--radius-sm); 
+}
+
+/* =========================================
+   5. CONTENT SECTIONS (About/Features)
+   ========================================= */
+.section-title { 
+    text-align: center; 
+    font-size: 2.5rem; 
+    margin: 60px 0 40px; 
+    color: var(--secondary-blue); 
+}
+
+.section-title span { border-bottom: 4px solid var(--accent-green); }
+
+.about-card { 
+    background: var(--white); 
+    max-width: 1000px; 
+    margin: 0 auto 60px; 
+    padding: 50px; 
+    border-radius: var(--radius-lg); 
+    box-shadow: var(--shadow); 
+    text-align: center; 
+    color: var(--text-muted); 
+}
+
+/* Features Grid */
+.features-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 30px; 
+    padding: 0 10%; 
+    margin-bottom: 80px; 
+}
+
+.feature-card { 
+    background: var(--white); 
+    padding: 40px; 
+    border-radius: var(--radius-lg); 
+    text-align: center; 
+    border: 1px solid #f1f5f9; 
+    transition: var(--transition);
+}
+
+.feature-card:hover { 
+    transform: translateY(-10px); 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05); 
+}
+
+.feature-icon { 
+    width: 70px; 
+    height: 70px; 
+    margin: 0 auto 20px; 
+    border-radius: 15px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 1.5rem; 
+    color: var(--white); 
+}
+
+/* Icon Colors */
+.box-blue { background: #3b82f6; } 
+.box-purple { background: #a855f7; } 
+.box-darkblue { background: var(--secondary-blue); } 
+.box-cyan { background: #06b6d4; } 
+.box-green { background: var(--accent-green); }
+
+/* =========================================
+   6. ASSISTANCE SECTION
+   ========================================= */
+.assistance-grid { 
+    display: flex; 
+    gap: 30px; 
+    justify-content: center; 
+    padding: 0 10% 80px; 
+    flex-wrap: wrap;
+}
+
+.assist-card { 
+    background: var(--white); 
+    padding: 40px; 
+    border-radius: var(--radius-lg); 
+    width: 450px; 
+    box-shadow: var(--shadow);
+}
+
+.assist-icon { font-size: 2.5rem; margin-bottom: 20px; }
+.icon-blue { color: var(--secondary-blue); } 
+.icon-green { color: var(--accent-green); }
+
+.btn-assist {
+    width: 100%; 
+    padding: 12px; 
+    border: none; 
+    border-radius: var(--radius-sm); 
+    cursor: pointer; 
+    color: var(--white);
+    font-weight: 600;
+}
+
+.btn-assist-blue { background: var(--secondary-blue); }
+.btn-assist-green { background: var(--accent-green); }
+
+/* =========================================
+   7. FOOTER
+   ========================================= */
+.footer { 
+    background: linear-gradient(to right, var(--secondary-blue), var(--dark-navy)); 
+    color: var(--white); 
+    padding: 60px 10% 20px; 
+}
+
+.footer-content { 
+    display: flex; 
+    justify-content: space-between; 
+    flex-wrap: wrap;
+    gap: 40px;
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
+    padding-bottom: 40px; 
+}
+
+.logo-box { 
+    background: var(--white); 
+    color: var(--secondary-blue); 
+    display: inline-block; 
+    padding: 5px 12px; 
+    border-radius: 5px; 
+    font-weight: bold; 
+    margin-bottom: 15px; 
+}
+
+.footer-links h4 { margin-bottom: 20px; color: var(--white); }
+.footer-links ul { list-style: none; }
+.footer-links a { 
+    color: #cbd5e1; 
+    line-height: 2.5; 
+}
+
+.footer-links a:hover { color: var(--white); }
+
+.footer-bottom { 
+    text-align: center; 
+    padding-top: 20px; 
+    font-size: 0.9rem; 
+    color: #94a3b8; 
+}

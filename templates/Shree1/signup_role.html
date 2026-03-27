@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHREE - Choose Your Role</title>
+    <link rel="stylesheet" href="{% static 'Shree1/css/signup_role.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1>Choose Your Role</h1>
+            <p>Select the role that best describes you to get started with your personalized sign-up experience</p>
+        </header>
+
+        <div class="role-grid">
+    <a href="{% url 'worker_signup' %}" class="role-card worker-card">
+        <div class="card-overlay">
+            <h2>Worker</h2>
+            <div class="card-footer"><span>Click to sign up</span><span class="arrow">→</span></div>
+        </div>
+    </a>
+
+    <a href="{% url 'warden_signup' %}" class="role-card warden-card">
+        <div class="card-overlay">
+            <h2>Warden</h2>
+            <div class="card-footer"><span>Click to sign up</span><span class="arrow">→</span></div>
+        </div>
+    </a>
+
+    
+</div>
+
+        <div class="bottom-nav">
+            <p>Already have an account? <a href="{% url 'welcome_role' %}">Login here</a></p>
+        </div>
+    </div>
+
+    <script src="{% static 'Shree1/js/role.js' %}"></script>
+</body>
+</html>

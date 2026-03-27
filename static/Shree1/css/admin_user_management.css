@@ -1,0 +1,299 @@
+/* Layout & Background (Matching the light blue/gray background) */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  background-color: #f3f4f6; /* Modern gray/blue tint */
+  color: #1f2937;
+}
+
+.admin-page-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar - Modern & Fixed Width */
+.sidebar {
+  width: 250px;
+  background: white;
+  border-right: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 25px;
+  margin-bottom: 20px;
+}
+.nav-logo-file {
+  width: 45px;
+  border-radius: 8px;
+}
+.brand-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111;
+}
+.brand-subtext {
+  margin: 0;
+  font-size: 10px;
+  color: #6b7280;
+}
+
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  text-decoration: none;
+  color: #4b5563;
+  border-radius: 8px;
+  margin: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.nav-link:hover {
+  background: #f9fafb;
+  color: #111;
+}
+.nav-link.active {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 600;
+}
+.nav-icon {
+  width: 20px;
+  text-align: center;
+}
+
+/* Main Content Area (Spacious) */
+.main-body {
+  flex: 1;
+  padding: 40px 60px;
+}
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+.header-left h1 {
+  font-size: 28px;
+  margin: 0;
+  font-weight: 700;
+  color: #111;
+}
+.header-subtitle {
+  color: #6b7280;
+  margin: 5px 0 0 0;
+}
+
+.add-new-btn {
+  background-color: #2563eb;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+}
+
+/* The White Card (Large Rounded Corners, soft shadow) */
+.white-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  padding: 30px;
+}
+
+.card-header-bar {
+  margin-bottom: 30px;
+}
+.card-header-bar h3 {
+  font-size: 18px;
+  margin: 0;
+  color: #1f2937;
+}
+.card-subtitle {
+  color: #6b7280;
+  margin: 5px 0 0 0;
+  font-size: 14px;
+}
+
+/* Table Styling (Spacious rows, clean borders) */
+.user-data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.user-data-table th {
+  text-align: left;
+  padding: 15px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #f1f5f9;
+}
+.user-data-table td {
+  padding: 20px 15px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 15px;
+}
+
+.name-cell {
+  font-weight: 600;
+  color: #111;
+}
+.role-cell {
+  color: #6b7280;
+} /* Matches photo's slightly muted role text */
+.uni-id-cell code {
+  background: #f1f5f9;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+/* Dynamic Status Badges (Precise Coloring from photo) */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Active/Registered (Green) */
+.status-indicator.registered {
+  background-color: #ecfdf5; /* Tinted Green bg */
+  color: #059669; /* Dark Green text */
+}
+
+/* Pending/Not Used (Orange) */
+.status-indicator.pending {
+  background-color: #fff7ed; /* Tinted Orange bg */
+  color: #ea580c; /* Dark Orange text */
+}
+
+/* Actions Column (Centered Delete Btn) */
+.centered-head,
+.centered-cell {
+  text-align: center;
+}
+.delete-icon-btn {
+  color: #ef4444;
+  font-size: 18px;
+  transition: 0.2s;
+}
+.delete-icon-btn:hover {
+  color: #b91c1c;
+  transform: scale(1.1);
+}
+
+/* Modal Design (Modernized, blur background) */
+.modal-wrapper {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+.modal-wrapper.active {
+  display: flex;
+}
+.modal-box {
+  background: white;
+  width: 420px;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+.modal-header h3 {
+  font-size: 18px;
+  margin: 0;
+}
+.close-x {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #888;
+  cursor: pointer;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: "Inter", sans-serif;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 30px;
+}
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-secondary {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
