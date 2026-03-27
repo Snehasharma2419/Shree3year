@@ -36,27 +36,23 @@
         </div>
 
         <nav class="nav-menu">
-          <a href="{% url 'admin_dashboard' %}" class="nav-item"
-            ><i class="fa-solid fa-table-cells-large"></i> Dashboard</a
-          >
-          <a href="{% url 'admin_user_management' %}" class="nav-item"
-            ><i class="fa-solid fa-users"></i> User Management</a
-          >
-          <a href="{% url 'admin_attendance' %}" class="nav-item"
-            ><i class="fa-regular fa-calendar-check"></i> Attendance</a
-          >
-          <a href="{% url 'admin_inventory' %}" class="nav-item"
-            ><i class="fa-solid fa-box-open"></i> Inventory</a
-          >
-          <a href="{% url 'admin_leave_Management' %}" class="nav-item active"
-            ><i class="fa-solid fa-file-contract"></i> Leave Management</a
-          >
-          <a href="{% url 'admin_profile' %}" class="nav-item"
-            ><i class="fa-regular fa-user"></i> Profile</a
-          >
-
-          <a href="{% url 'worker_report' %}" class="nav-item"
-            ><i class="fa-regular fa-user"></i> Report
+          <a href="{% url 'admin_dashboard' %}" class="nav-item">
+            <i class="fa-solid fa-table-cells-large"></i> Dashboard
+          </a>
+          <a href="{% url 'admin_user_management' %}" class="nav-item">
+            <i class="fa-solid fa-users"></i> User Management
+          </a>
+          <a href="{% url 'admin_attendance' %}" class="nav-item">
+            <i class="fa-regular fa-calendar-check"></i> Attendance
+          </a>
+          <a href="{% url 'admin_inventory' %}" class="nav-item">
+            <i class="fa-solid fa-box-open"></i> Inventory
+          </a>
+          <a href="{% url 'admin_leave_Management' %}" class="nav-item active">
+            <i class="fa-solid fa-file-contract"></i> Leave Management
+          </a>
+          <a href="{% url 'admin_profile' %}" class="nav-item">
+            <i class="fa-regular fa-user"></i> Profile
           </a>
         </nav>
       </aside>
@@ -89,7 +85,7 @@
                   <th>Start Date</th>
                   <th>End Date</th>
                   <th>Warden</th>
-                  <th>Status</th>
+                  <th class="center-align">Status</th>
                   <th class="center-align">Action</th>
                 </tr>
               </thead>
@@ -107,7 +103,9 @@
                   <td class="muted-cell">
                     {{ req.warden.name }} ({{ req.warden.warden_id }})
                   </td>
-                  <td><span class="status pending">{{ req.status }}</span></td>
+                  <td class="center-align">
+                    <span class="status pending">Pending</span>
+                  </td>
                   <td class="action-cell">
                     <form
                       method="POST"
@@ -143,6 +141,55 @@
                 <tr>
                   <td colspan="7" class="empty-state">
                     No pending leave requests found.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="leave-card mt-4">
+          <h3>Leave History</h3>
+
+          <div class="table-responsive">
+            <table class="leave-table">
+              <thead>
+                <tr>
+                  <th>Worker</th>
+                  <th>Leave Type</th>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Warden</th>
+                  <th class="center-align">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for req in leave_history %}
+                <tr>
+                  <td class="primary-cell">
+                    {{ req.worker.name }} ({{ req.worker.worker_id }})
+                  </td>
+                  <td class="muted-cell">{{ req.leave_type }}</td>
+                  <td class="muted-cell">
+                    {{ req.start_date|date:"M. d, Y" }}
+                  </td>
+                  <td class="muted-cell">{{ req.end_date|date:"M. d, Y" }}</td>
+                  <td class="muted-cell">
+                    {{ req.warden.name }} ({{ req.warden.warden_id }})
+                  </td>
+                  <td class="center-align">
+                    <span
+                      class="status {% if req.status == 'Approved' %}approved{% else %}rejected{% endif %}"
+                    >
+                      {{ req.status }}
+                    </span>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="6" class="empty-state">
+                    No leave history found yet.
                   </td>
                 </tr>
                 {% endfor %}

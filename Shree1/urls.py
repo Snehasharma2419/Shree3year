@@ -34,6 +34,12 @@ urlpatterns = [
    path('Shree-admin/leave/', views.admin_leave_Management, name='admin_leave_Management'),
    
    path('Shree-admin/profile/', views.admin_profile, name='admin_profile'),
+   
+   #sneha edit
+    path('Shree-admin/add-id/', views.add_university_id, name='add_university_id'),
+    
+    # Delete User ke liye path (Isme <int:id> dena zaroori hai taaki Django ko pata chale kiska ID delete karna hai)
+    path('Shree-admin/delete-id/<int:id>/', views.delete_uni_id, name='delete_uni_id'),
     
 ]
 

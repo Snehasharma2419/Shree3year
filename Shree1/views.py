@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime 
 from django.urls import reverse 
-from accounts.models import User, UniversityID, Worker, Warden, Supplier, Attendance, Inventory, LeaveRequest
+from accounts.models import User, UniversityID, Worker, Warden, Supplier, Attendance, Inventory, LeaveRequest , Notification
 
 
 
@@ -26,33 +26,54 @@ def role_selection(request):
 
 @login_required
 def admin_dashboard(request):
+    # Ab hum UniversityID ko count kar rahe hain. 
+    # Jaise hi aap naya add/delete karengi, yeh number turant badlega!
+    warden_count = UniversityID.objects.filter(role__iexact='warden').count()
+    worker_count = UniversityID.objects.filter(role__iexact='worker').count()
+    
+    # 2. Aaj ki attendance
+    today = timezone.now().date()
+    present_workers = Attendance.objects.filter(date=today, status__iexact='Present').count()
+    absent_workers = Attendance.objects.filter(date=today, status__iexact='Absent').count()
+    
+    # 3. Latest Notifications
+    recent_notifications = Notification.objects.order_by('-created_at')[:5]
+    
     context = {
-        'warden_count': Warden.objects.count(),
-        'worker_count': Worker.objects.count(),
-        'supplier_count': Supplier.objects.count(),
-        'admin_name': request.user.username,
+        'admin_name': request.user.username if request.user.is_authenticated else 'Admin',
+        'warden_count': warden_count,
+        'worker_count': worker_count, 
+        'present_workers': present_workers,
+        'absent_workers': absent_workers,
+        'recent_notifications': recent_notifications,
     }
+    
     return render(request, 'Shree1/dashboardAdmin.html', context)
 
-@login_required
-def admin_user_management(request):
-    wardens = Warden.objects.all()
-    workers = Worker.objects.all()
-    auth_ids = UniversityID.objects.all().order_by('-id')
-    return render(request, 'Shree1/admin_user_management.html', {
+def admin_user_management(request):  #sneha ka new update
+    
+    unused_ids = UniversityID.objects.filter(is_used=False)
+    
+    wardens = UniversityID.objects.filter(is_used=True, role__iexact='warden')
+    
+    workers = UniversityID.objects.filter(is_used=True, role__iexact='worker')
+    
+    # Context mein in teeno ko alag-alag HTML mein bhejein
+    context = {
+        'unused_ids': unused_ids,
         'wardens': wardens,
         'workers': workers,
-        'auth_ids': auth_ids
-    })
-
-@login_required
+    }
+    
+    return render(request, 'Shree1/admin_user_management.html', context)
+@login_required #sneha edit
 def admin_attendance(request):
-    # YAHAN CHANGE KIYA HAI: Ab Admin seedha UniversityID table se workers uthayega!
+    # Admin seedha UniversityID table se workers uthayega
     master_workers = UniversityID.objects.filter(role='worker')
     today = timezone.now().date()
     today_str = today.strftime('%Y-%m-%d')
 
-    # --- 1. DETERMINE THE DATE WE ARE LOOKING AT ---
+    # --- 1. DETERMINE THE DATE ---
     selected_date_str = request.GET.get('date')
     if selected_date_str:
         try:
@@ -65,16 +86,16 @@ def admin_attendance(request):
         current_date_obj = today
         current_date_str = today_str
 
-    # --- 2. HANDLE POST (ADMIN SAVING ATTENDANCE) ---
+    # --- 2. HANDLE POST (ADMIN SAVING/UPDATING ATTENDANCE) ---
     if request.method == "POST":
         save_date = request.POST.get('save_date') or current_date_str
         
         for master in master_workers:
-            # Ab hum master.university_id se check kar rahe hain
             status = request.POST.get(f'status_{master.university_id}')
             if status:
                 admin_warden = Warden.objects.first()
                 try:
+                    # Attendance update ya create karein
                     Attendance.objects.update_or_create(
                         worker_master=master,
                         date=current_date_obj,
@@ -87,11 +108,25 @@ def admin_attendance(request):
                         defaults={'status': status.strip(), 'warden': admin_warden}
                     )
 
-        messages.success(request, f"Attendance for {save_date} updated.")
+                # --- 🔔 ADMIN NOTIFICATION LOGIC (ALWAYS NOTIFY) ---
+                # Admin jab bhi update karega (Present/Absent), worker ko noti jayega
+                worker_user = User.objects.filter(university_id=master.university_id).first()
+                
+                if worker_user:
+                    # Absent ke liye red alert, baki ke liye blue info icon
+                    noti_type_val = 'alert' if status.strip().lower() == 'absent' else 'user'
+                    
+                    Notification.objects.create(
+                        recipient=worker_user,
+                        message=f"Admin updated your attendance to {status} for {save_date}.",
+                        noti_type=noti_type_val
+                    )
+
+        messages.success(request, f"Attendance for {save_date} updated and workers notified.")
         return redirect(f"{reverse('admin_attendance')}?date={save_date}")
 
 
-    # --- 3. FETCH ATTENDANCE (100% MATCH WITH WARDEN) ---
+    # --- 3. FETCH ATTENDANCE DATA ---
     worker_data_list = []
     present_count = 0
     absent_count = 0
@@ -111,7 +146,6 @@ def admin_attendance(request):
             if att.worker_master:
                 att_uid_clean = str(att.worker_master.university_id).strip().lower()
                 
-                # Agar ID match ho gayi
                 if master_id_clean == att_uid_clean:
                     db_status = str(att.status).strip()
                     if att.warden:
@@ -125,8 +159,8 @@ def admin_attendance(request):
             absent_count += 1
 
         worker_data_list.append({
-            'worker_id': master.university_id, # UI par dikhane ke liye
-            'name': master.full_name,          # UI par dikhane ke liye
+            'worker_id': master.university_id,
+            'name': master.full_name,
             'status': db_status,
             'warden_name': warden_name,
             'warden_id': warden_id,
@@ -139,6 +173,7 @@ def admin_attendance(request):
         'present_count': present_count,
         'absent_count': absent_count,
     })
+
 @login_required
 def admin_inventory(request):
     items = Inventory.objects.all()
@@ -156,17 +191,51 @@ def admin_inventory(request):
 
 @login_required
 def admin_leave_Management(request):
+    
+    # --- YAHAN SE NAYA LOGIC SHURU (Button clicks handle karne ke liye) ---
     if request.method == "POST":
         leave_id = request.POST.get('leave_id')
-        action = request.POST.get('action')
-        leave_req = get_object_or_404(LeaveRequest, id=leave_id)
-        leave_req.status = action
-        leave_req.save()
-        messages.success(request, f"Leave request {action} for {leave_req.worker.name}.")
-        return redirect('admin_leave_Management')
+        action = request.POST.get('action') # Yeh HTML se "Approved" ya "Rejected" aayega
 
-    pending = LeaveRequest.objects.filter(status='Pending')
-    return render(request, 'Shree1/admin_leave_Management.html', {'pending': pending})
+        if leave_id and action:
+            # 1. Leave Request ko database mein update karo
+            leave_req = get_object_or_404(LeaveRequest, id=leave_id)
+            leave_req.status = action
+            leave_req.save()
+
+            # 2. Dynamic Notification Create karo!
+            # Hum recipient mein 'leave_req.worker.user' pass karenge 
+            # taaki worker ko notification mile.
+            
+            if action == 'Approved':
+                Notification.objects.create(
+                    recipient=leave_req.worker.user, # Specific worker ko jayega
+                    message=f"Your leave request from {leave_req.start_date} has been Approved.",
+                    noti_type='leave' # Yellow icon
+                )
+            else:
+                Notification.objects.create(
+                    recipient=leave_req.worker.user, # Specific worker ko jayega
+                    message=f"Your leave request from {leave_req.start_date} has been Rejected.",
+                    noti_type='alert' # Red icon
+                )
+
+            # 3. Success message dikhao aur page refresh karo
+            messages.success(request, f"Leave request for {leave_req.worker.name} {action.lower()} successfully!")
+            return redirect('admin_leave_Management')
+    # --- YAHAN NAYA LOGIC KHATAM ---
+
+
+    # --- PURANA LOGIC (Data dikhane ke liye) ---
+    pending_requests = LeaveRequest.objects.filter(status='Pending')
+    leave_history = LeaveRequest.objects.exclude(status='Pending').order_by('-created_at') # latest pehle
+    
+    context = {
+        'pending': pending_requests,
+        'leave_history': leave_history, 
+    }
+    return render(request, 'Shree1/admin_leave_Management.html', context)
+
 @login_required
 def admin_profile(request):
 
@@ -202,3 +271,44 @@ def admin_profile(request):
 
     return render(request, 'Shree1/admin_profile.html', profile)
 
+@login_required
+def add_university_id(request): #sneha edit
+    if request.method == "POST":
+        full_name = request.POST.get('full_name')
+        uni_id = request.POST.get('uni_id')
+        role = request.POST.get('role')
+
+        # Database mein naya ID save karna
+        UniversityID.objects.create(
+            full_name=full_name, 
+            university_id=uni_id, 
+            role=role
+        )
+
+        # ---> NAYA NOTIFICATION LOGIC <---
+        Notification.objects.create(
+            message=f"New {role} authorized: {full_name}",
+            noti_type='user' # Blue icon aayega (user registration ke liye)
+        )
+
+        messages.success(request, "New ID Authorized successfully!")
+        return redirect('admin_user_management')
+    
+@login_required
+def delete_uni_id(request, id): # sneha edit
+    # 1. Jo ID delete karni hai use find karein
+    obj = get_object_or_404(UniversityID, id=id)
+    name = obj.full_name
+    role = obj.role
+    
+    # 2. Database se delete karein
+    obj.delete()
+
+    # 3. ---> DYNAMIC NOTIFICATION <---
+    Notification.objects.create(
+        message=f"{role.capitalize()} ID revoked/deleted: {name}",
+        noti_type='alert' # Red alert icon aayega kyunki kuch delete hua hai
+    )
+
+    messages.success(request, f"ID for {name} deleted successfully!")
+    return redirect('admin_user_management')

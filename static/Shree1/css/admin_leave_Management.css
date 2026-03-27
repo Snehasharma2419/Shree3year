@@ -1,7 +1,7 @@
 /* --- Variables & Reset --- */
 :root {
   --primary-blue: #2563eb;
-  --bg-light: #f8fafc;
+  --bg-light: #f3f4f6; /* Updated to match other pages */
   --border-color: #e2e8f0;
   --text-main: #0f172a;
   --text-muted: #64748b;
@@ -25,7 +25,7 @@ body {
   margin: 0;
 }
 
-/* ADDED THIS to fix the width issue! */
+/* Base Layout Container */
 .container {
   display: flex;
   width: 100%;
@@ -43,6 +43,7 @@ body {
   left: 0;
   display: flex;
   flex-direction: column;
+  z-index: 100;
 }
 
 .logo-section {
@@ -119,9 +120,7 @@ body {
 .main-content {
   margin-left: var(--sidebar-width);
   flex: 1;
-  width: calc(
-    100% - var(--sidebar-width)
-  ); /* This guarantees it stretches fully */
+  width: calc(100% - var(--sidebar-width));
   padding: 40px 60px;
 }
 
@@ -144,14 +143,14 @@ body {
   font-size: 15px;
 }
 
-/* --- Leave Card & Table --- */
+/* --- Leave Cards --- */
 .leave-card {
   background: #ffffff;
-  border-radius: 20px;
-  padding: 40px;
+  border-radius: 16px;
+  padding: 30px 40px;
   border: 1px solid var(--border-color);
-  box-shadow: none;
-  width: 100%; /* Ensures the white card fills the space */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+  width: 100%;
 }
 
 .leave-card h3 {
@@ -161,11 +160,17 @@ body {
   margin-bottom: 25px;
 }
 
+/* Margin Top for the second card */
+.mt-4 {
+  margin-top: 30px;
+}
+
 .table-responsive {
   width: 100%;
   overflow-x: auto;
 }
 
+/* --- Table Styling --- */
 .leave-table {
   width: 100%;
   border-collapse: collapse;
@@ -201,7 +206,7 @@ body {
   text-align: center !important;
 }
 
-/* Status Badges */
+/* --- Status Badges --- */
 .status {
   padding: 6px 14px;
   border-radius: 8px;
@@ -209,6 +214,7 @@ body {
   font-weight: 600;
   display: inline-block;
   text-align: center;
+  min-width: 90px;
 }
 
 .status.pending {
@@ -216,7 +222,17 @@ body {
   color: var(--warning-yellow);
 }
 
-/* Action Buttons */
+.status.approved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status.rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* --- Action Buttons --- */
 .action-cell {
   text-align: center;
 }
@@ -248,6 +264,7 @@ body {
 
 .btn:hover {
   filter: brightness(0.9);
+  transform: translateY(-1px);
 }
 
 /* Utilities */

@@ -1,230 +1,332 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SHREE - Supplier Dashboard</title>
-    <link rel="stylesheet" href="{% static 'Shree1/css/dashboardSupplier.css' %}" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <title>SHREE -Kutir Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="{% static 'Shree1/css/dashboardSupplier.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
-        /* Modern Styles for AI & Verification */
-        .batch-verify-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #f1f5f9;
-            padding: 10px 15px;
-            border-radius: 10px;
-            border: 1px dashed #2563eb;
-        }
-        .otp-input-batch {
-            padding: 8px 12px;
-            border: 2px solid #cbd5e1;
-            border-radius: 6px;
-            width: 140px;
-            font-weight: 800;
-            text-align: center;
-            letter-spacing: 3px;
-            font-size: 1.1rem;
-            color: #1e40af;
-        }
-        .confirm-btn-batch {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-        .confirm-btn-batch:hover { 
-            background-color: #1e40af; 
-            transform: translateY(-1px);
-        }
-        .ai-remark-badge {
-            font-size: 10px;
-            background: #fffbeb;
-            color: #92400e;
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid #fef3c7;
-            display: inline-block;
-            margin-top: 4px;
-        }
+      /* Modern Styles for AI & Verification */
+      .batch-verify-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #f1f5f9;
+        padding: 10px 15px;
+        border-radius: 10px;
+        border: 1px dashed #2563eb;
+      }
+      .otp-input-batch {
+        padding: 8px 12px;
+        border: 2px solid #cbd5e1;
+        border-radius: 6px;
+        width: 140px;
+        font-weight: 800;
+        text-align: center;
+        letter-spacing: 3px;
+        font-size: 1.1rem;
+        color: #1e40af;
+      }
+      .confirm-btn-batch {
+        background-color: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.3s;
+      }
+      .confirm-btn-batch:hover {
+        background-color: #1e40af;
+        transform: translateY(-1px);
+      }
+      .ai-remark-badge {
+        font-size: 10px;
+        background: #fffbeb;
+        color: #92400e;
+        padding: 2px 6px;
+        border-radius: 4px;
+        border: 1px solid #fef3c7;
+        display: inline-block;
+        margin-top: 4px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <aside class="sidebar">
-            <div class="logo-section">
-                <div class="logo-icon">S</div>
-                <div>
-                    <h2 class="logo-name">SHREE</h2>
-                    <p class="logo-tagline">Smart Hostel Record</p>
-                </div>
+      <aside class="sidebar">
+        <div class="logo-section">
+          <div class="logo-icon">S</div>
+          <div>
+            <h2 class="logo-name">SHREE</h2>
+            <p class="logo-tagline">Smart Hostel Record</p>
+          </div>
+        </div>
+        <nav class="nav-menu">
+          <a href="{% url 'supplier_dashboard' %}" class="nav-item active">
+            <i class="fa-solid fa-table-cells-large"></i> Dashboard
+          </a>
+          <a href="{% url 'supplier_profile' %}" class="nav-item">
+            <i class="fa-regular fa-user"></i> Profile
+          </a>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="top-header">
+          <div class="user-info">
+            <span class="user-name">{{ user.username|title }}</span>
+            <span class="user-role">Official KUTIR </span>
+          </div>
+          <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button class="logout-btn" type="submit">
+              <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+          </form>
+        </header>
+
+        <section class="dashboard-intro">
+          <h1>Kutir Dashboard</h1>
+          <p>AI-Powered Inventory Sync Active</p>
+        </section>
+
+        {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+          <div
+            class="alert alert-{{ message.tags }}"
+            style="
+              padding: 15px;
+              margin-bottom: 20px;
+              border-radius: 8px;
+              background: #f0fdf4;
+              color: #166534;
+              border: 1px solid #bbf7d0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            "
+          >
+            <i class="fa-solid fa-circle-check"></i> {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-info">
+              <p>Items in Queue</p>
+              <h3>{{ pending_items|length }}</h3>
             </div>
-            <nav class="nav-menu">
-                <a href="{% url 'supplier_dashboard' %}" class="nav-item active">
-                    <i class="fa-solid fa-table-cells-large"></i> Dashboard
-                </a>
-                <a href="{% url 'supplier_profile' %}" class="nav-item">
-                    <i class="fa-regular fa-user"></i> Profile
-                </a>
-            </nav>
-        </aside>
-
-        <main class="main-content">
-            <header class="top-header">
-                <div class="user-info">
-                    <span class="user-name">{{ user.username|title }}</span>
-                    <span class="user-role">Official Supplier</span>
-                </div>
-                <form action="{% url 'logout' %}" method="post">
-                    {% csrf_token %}
-                    <button class="logout-btn" type="submit">
-                        <i class="fa-solid fa-right-from-bracket"></i> Logout
-                    </button>
-                </form>
-            </header>
-
-            <section class="dashboard-intro">
-                <h1>Supplier Dashboard</h1>
-                <p>AI-Powered Inventory Sync Active</p>
-            </section>
-
-            {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}" style="padding:15px; margin-bottom:20px; border-radius:8px; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-circle-check"></i> {{ message }}
-                </div>
-                {% endfor %}
+            <div class="stat-icon blue-light-bg">
+              <i class="fa-solid fa-box-archive"></i>
             </div>
-            {% endif %}
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <p>Sent to Hostel</p>
+              <h3>{{ active_shipments.count }}</h3>
+            </div>
+            <div class="stat-icon orange-light-bg">
+              <i class="fa-regular fa-clock"></i>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-info">
+              <p>Total Catalog</p>
+              <h3>{{ total_items_count }}</h3>
+            </div>
+            <div class="stat-icon green-light-bg">
+              <i class="fa-solid fa-list-check"></i>
+            </div>
+          </div>
+        </div>
 
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-info"><p>Items in Queue</p><h3>{{ pending_items|length }}</h3></div>
-                    <div class="stat-icon blue-light-bg"><i class="fa-solid fa-box-archive"></i></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-info"><p>Sent to Hostel</p><h3>{{ active_shipments.count }}</h3></div>
-                    <div class="stat-icon orange-light-bg"><i class="fa-regular fa-clock"></i></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-info"><p>Total Catalog</p><h3>{{ total_items_count }}</h3></div>
-                    <div class="stat-icon green-light-bg"><i class="fa-solid fa-list-check"></i></div>
-                </div>
+        <div class="card-panel table-section">
+          <form
+            method="POST"
+            action="{% url 'supplier_dispatch_item' %}"
+            id="bulkDispatchForm"
+          >
+            {% csrf_token %}
+            <div class="table-header-group">
+              <h3>
+                <i class="fa-solid fa-truck-loading"></i> Pending Deliveries
+              </h3>
+              <button
+                type="submit"
+                class="bulk-dispatch-btn"
+                id="mainDispatchBtn"
+                disabled
+              >
+                <i class="fa-solid fa-paper-plane"></i> Dispatch Selected
+              </button>
             </div>
 
-            <div class="card-panel table-section">
-                <form method="POST" action="{% url 'supplier_dispatch_item' %}" id="bulkDispatchForm">
-                    {% csrf_token %}
-                    <div class="table-header-group">
-                        <h3><i class="fa-solid fa-truck-loading"></i> Pending Deliveries</h3>
-                        <button type="submit" class="bulk-dispatch-btn" id="mainDispatchBtn" disabled>
-                            <i class="fa-solid fa-paper-plane"></i> Dispatch Selected
-                        </button>
+            <table class="order-table">
+              <thead>
+                <tr>
+                  <th class="select-column">
+                    <input
+                      type="checkbox"
+                      id="selectAll"
+                      class="checkbox-custom"
+                    />
+                  </th>
+                  <th>Item ID</th>
+                  <th>Item Name</th>
+                  <th>Deficit / Gap</th>
+                  <th>Dispatch Quantity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in pending_items %}
+                <tr>
+                  <td class="select-column">
+                    <input
+                      type="checkbox"
+                      name="selected_items"
+                      value="{{ item.item_id }}"
+                      class="item-checkbox checkbox-custom"
+                    />
+                  </td>
+                  <td class="id-cell">#{{ item.item_id }}</td>
+                  <td>
+                    <strong>{{ item.item_name }}</strong><br />
+                    <span class="ai-remark-badge"
+                      ><i class="fa-solid fa-robot"></i> AI Recommended</span
+                    >
+                  </td>
+                  <td class="qty-text red-text">
+                    {{ item.deficit }} {{ item.unit }}
+                  </td>
+                  <td>
+                    <div class="qty-input-group">
+                      <input
+                        type="number"
+                        name="qty_{{ item.item_id }}"
+                        class="qty-input"
+                        value="{{ item.deficit }}"
+                        min="0.1"
+                        step="0.1"
+                      />
+                      <span class="unit-text">{{ item.unit }}</span>
                     </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td
+                    colspan="5"
+                    style="text-align: center; padding: 40px; color: #64748b"
+                  >
+                    <i
+                      class="fa-solid fa-circle-check"
+                      style="color: #16a34a; font-size: 2rem"
+                    ></i
+                    ><br />
+                    Inventory is full! No pending requests.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </form>
+        </div>
 
-                    <table class="order-table">
-                        <thead>
-                            <tr>
-                                <th class="select-column"><input type="checkbox" id="selectAll" class="checkbox-custom"></th>
-                                <th>Item ID</th>
-                                <th>Item Name</th>
-                                <th>Deficit / Gap</th>
-                                <th>Dispatch Quantity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in pending_items %}
-                            <tr>
-                                <td class="select-column">
-                                    <input type="checkbox" name="selected_items" value="{{ item.item_id }}" class="item-checkbox checkbox-custom">
-                                </td>
-                                <td class="id-cell">#{{ item.item_id }}</td>
-                                <td>
-                                    <strong>{{ item.item_name }}</strong><br>
-                                    <span class="ai-remark-badge"><i class="fa-solid fa-robot"></i> AI Recommended</span>
-                                </td>
-                                <td class="qty-text red-text">{{ item.deficit }} {{ item.unit }}</td>
-                                <td>
-                                    <div class="qty-input-group">
-                                        <input type="number" name="qty_{{ item.item_id }}" class="qty-input" value="{{ item.deficit }}" min="0.1" step="0.1">
-                                        <span class="unit-text">{{ item.unit }}</span>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" style="text-align:center; padding: 40px; color: #64748b;">
-                                    <i class="fa-solid fa-circle-check" style="color: #16a34a; font-size: 2rem;"></i><br>
-                                    Inventory is full! No pending requests.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </form>
-            </div>
+        <div class="card-panel table-section" style="margin-top: 30px">
+          <div class="table-header-group">
+            <h3><i class="fa-solid fa-truck-fast"></i> Shipments At Gate</h3>
 
-            <div class="card-panel table-section" style="margin-top: 30px;">
-                <div class="table-header-group">
-                    <h3><i class="fa-solid fa-truck-fast"></i> Shipments At Gate</h3>
-                    
-                    {% if active_shipments %}
-                    <form method="POST" action="{% url 'supplier_confirm_delivery' %}" class="batch-verify-container">
-                        {% csrf_token %}
-                        <span style="font-size: 0.9rem; color: #1e293b; font-weight: 600;">Ask Warden for OTP:</span>
-                        <input type="text" name="otp_code" class="otp-input-batch" placeholder="6-DIGIT" maxlength="6" required autocomplete="off">
-                        <button type="submit" class="confirm-btn-batch">Verify & Update Stock</button>
-                    </form>
-                    {% endif %}
-                </div>
+            {% if active_shipments %}
+            <form
+              method="POST"
+              action="{% url 'supplier_confirm_delivery' %}"
+              class="batch-verify-container"
+            >
+              {% csrf_token %}
+              <span style="font-size: 0.9rem; color: #1e293b; font-weight: 600"
+                >Ask Warden for OTP:</span
+              >
+              <input
+                type="text"
+                name="otp_code"
+                class="otp-input-batch"
+                placeholder="6-DIGIT"
+                maxlength="6"
+                required
+                autocomplete="off"
+              />
+              <button type="submit" class="confirm-btn-batch">
+                Verify & Update Stock
+              </button>
+            </form>
+            {% endif %}
+          </div>
 
-                <table class="order-table">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Item Name</th>
-                            <th>Qty. in Transit</th>
-                            <th>AI Status</th>
-                            <th>Current State</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for order in active_shipments %}
-                        <tr>
-                            <td class="id-cell">#ORD{{ order.id }}</td>
-                            <td><strong>{{ order.item.item_name }}</strong></td>
-                            <td class="qty-text">{{ order.qty_delivered }} {{ order.item.unit }}</td>
-                            <td>
-                                <span class="ai-remark-badge">
-                                    {{ order.ai_remark|default:"Normal Supply" }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="status-badge" style="background: #fff7ed; color: #9a3412; border: 1px solid #ffedd5;">
-                                    Waiting for Warden OTP
-                                </span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" style="text-align:center; padding: 20px; color: #94a3b8;">
-                                No active shipments at the gate.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </main>
+          <table class="order-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Item Name</th>
+                <th>Qty. in Transit</th>
+                <th>AI Status</th>
+                <th>Current State</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in active_shipments %}
+              <tr>
+                <td class="id-cell">#ORD{{ order.id }}</td>
+                <td><strong>{{ order.item.item_name }}</strong></td>
+                <td class="qty-text">
+                  {{ order.qty_delivered }} {{ order.item.unit }}
+                </td>
+                <td>
+                  <span class="ai-remark-badge">
+                    {{ order.ai_remark|default:"Normal Supply" }}
+                  </span>
+                </td>
+                <td>
+                  <span
+                    class="status-badge"
+                    style="
+                      background: #fff7ed;
+                      color: #9a3412;
+                      border: 1px solid #ffedd5;
+                    "
+                  >
+                    Waiting for Warden OTP
+                  </span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td
+                  colspan="5"
+                  style="text-align: center; padding: 20px; color: #94a3b8"
+                >
+                  No active shipments at the gate.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </main>
     </div>
-    
+
     <script src="{% static 'Shree1/js/dashboardSupplier.js' %}"></script>
-</body>
+  </body>
 </html>

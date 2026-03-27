@@ -5,18 +5,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SHREE - Attendance Management</title>
-    <link
-      rel="stylesheet"
-      href="{% static 'Shree1/css/dashboardWarden.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'Shree1/css/warden_attendance.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="{% static 'Shree1/css/dashboardWarden.css' %}" />
+    <link rel="stylesheet" href="{% static 'Shree1/css/warden_attendance.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+      /* Thodi si CSS add ki hai disabled buttons ke liye */
+      .status-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .save-btn:disabled {
+        background-color: #94a3b8;
+        cursor: not-allowed;
+      }
+    </style>
   </head>
   <body>
     <div class="container">
@@ -29,21 +31,11 @@
           </div>
         </div>
         <nav class="nav-menu">
-          <a href="{% url 'warden_dashboard' %}" class="nav-item"
-            ><i class="fa-solid fa-table-cells-large"></i> Dashboard</a
-          >
-          <a href="{% url 'attendance' %}" class="nav-item active"
-            ><i class="fa-solid fa-calendar-check"></i> Attendance</a
-          >
-          <a href="{% url 'inventory' %}" class="nav-item"
-            ><i class="fa-solid fa-boxes-stacked"></i> Inventory</a
-          >
-          <a href="{% url 'warden_leave' %}" class="nav-item"
-            ><i class="fa-solid fa-envelope-open-text"></i> Leave Management</a
-          >
-          <a href="{% url 'warden_profile' %}" class="nav-item"
-            ><i class="fa-regular fa-user"></i> Profile</a
-          >
+          <a href="{% url 'warden_dashboard' %}" class="nav-item"><i class="fa-solid fa-table-cells-large"></i> Dashboard</a>
+          <a href="{% url 'attendance' %}" class="nav-item active"><i class="fa-solid fa-calendar-check"></i> Attendance</a>
+          <a href="{% url 'inventory' %}" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Inventory</a>
+          <a href="{% url 'warden_leave' %}" class="nav-item"><i class="fa-solid fa-envelope-open-text"></i> Leave Management</a>
+          <a href="{% url 'warden_profile' %}" class="nav-item"><i class="fa-regular fa-user"></i> Profile</a>
         </nav>
       </aside>
 
@@ -61,9 +53,13 @@
             <div>
               <h1>Attendance Management</h1>
               <p>Mark and manage employee attendance</p>
+              {% if is_locked %}
+                <p style="color: red; font-weight: bold; margin-top: 5px;"><i class="fa-solid fa-lock"></i> Attendance for this date is already submitted and locked.</p>
+              {% endif %}
             </div>
-            <button type="submit" class="save-btn" id="saveBtn">
-              <i class="fa-solid fa-floppy-disk"></i> Save Attendance
+            
+            <button type="submit" class="save-btn" id="saveBtn" {% if is_locked %}disabled{% endif %}>
+              <i class="fa-solid fa-floppy-disk"></i> {% if is_locked %}Saved{% else %}Save Attendance{% endif %}
             </button>
           </section>
 
@@ -71,15 +67,7 @@
             <div class="date-picker-section">
               <div class="input-group">
                 <i class="fa-regular fa-calendar"></i>
-                <input
-                  type="date"
-                  name="attendance_date"
-                  value="{{ today }}"
-                  id="attendanceDate"
-                  min="{{ today }}"
-                  max="{{ today }}"
-                  required
-                />
+                <input type="date" name="attendance_date" value="{{ current_date_str }}" id="attendanceDate" max="{{ today_str }}" required onchange="window.location.href='?date='+this.value;" />
               </div>
               <span>Select Date</span>
             </div>
@@ -96,33 +84,18 @@
               <tbody>
                 {% for worker in workers %}
                 <tr>
-                  <td>{{ worker.full_name }}</td>
-                  <td>{{ worker.role|capfirst }}</td>
-                  <td>{{ worker.university_id }}</td>
+                  <td>{{ worker.name }}</td>
+                  <td>Worker</td>
+                  <td>{{ worker.worker_id }}</td>
                   <td>
                     <div class="attendance-btns">
-                      <input
-                        type="hidden"
-                        name="status_{{ worker.university_id }}"
-                        id="input_{{ worker.university_id }}"
-                        value="Present"
-                      />
+                      <input type="hidden" name="status_{{ worker.worker_id }}" id="input_{{ worker.worker_id }}" value="{{ worker.status|default:'Present' }}" />
 
-                      <button
-                        type="button"
-                        class="status-btn btn-present active"
-                        data-worker="{{ worker.university_id }}"
-                        data-status="Present"
-                      >
+                      <button type="button" class="status-btn btn-present {% if worker.status == 'Present' or not worker.status %}active{% endif %}" data-worker="{{ worker.worker_id }}" data-status="Present" {% if is_locked %}disabled{% endif %}>
                         Present
                       </button>
 
-                      <button
-                        type="button"
-                        class="status-btn btn-absent"
-                        data-worker="{{ worker.university_id }}"
-                        data-status="Absent"
-                      >
+                      <button type="button" class="status-btn btn-absent {% if worker.status == 'Absent' %}active{% endif %}" data-worker="{{ worker.worker_id }}" data-status="Absent" {% if is_locked %}disabled{% endif %}>
                         Absent
                       </button>
                     </div>
@@ -144,10 +117,6 @@
                 <p>Absent</p>
                 <h4 id="absentCountDisplay">0</h4>
               </div>
-              <div class="summary-card leave-card">
-                <p>On Leave</p>
-                <h4 id="leaveCountDisplay">0</h4>
-              </div>
               <div class="summary-card rate-card">
                 <p>Attendance Rate</p>
                 <h4 class="blue-text" id="rateDisplay">0%</h4>
@@ -161,55 +130,39 @@
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const buttons = document.querySelectorAll(".status-btn");
+        const isLocked = {{ is_locked|yesno:"true,false" }}; // Backend se aayega ki locked hai ya nahi
 
-        // Page load hote hi summary update karein
         updateSummary();
 
         buttons.forEach((button) => {
           button.addEventListener("click", function () {
+            // Agar attendance already submitted hai, toh click kaam nahi karega
+            if (isLocked) return; 
+
             const workerId = this.getAttribute("data-worker");
             const status = this.getAttribute("data-status");
             const btnContainer = this.closest(".attendance-btns");
 
-            // 1. HIDDEN INPUT UPDATE (Django ke liye)
             const hiddenInput = document.getElementById("input_" + workerId);
             if (hiddenInput) {
               hiddenInput.value = status;
             }
 
-            // 2. UI UPDATE (Active class lagana)
-            btnContainer
-              .querySelectorAll(".status-btn")
-              .forEach((btn) => btn.classList.remove("active"));
+            btnContainer.querySelectorAll(".status-btn").forEach((btn) => btn.classList.remove("active"));
             this.classList.add("active");
 
-            // 3. SUMMARY UPDATE (Isse cards update honge)
             updateSummary();
           });
         });
 
         function updateSummary() {
-          const total = document.querySelectorAll(
-            ".attendance-table tbody tr",
-          ).length;
-
-          // --- YAHAN Galti thi, Leave count add kiya hai ---
-          const present = document.querySelectorAll(
-            ".btn-present.active",
-          ).length;
+          const total = document.querySelectorAll(".attendance-table tbody tr").length;
+          const present = document.querySelectorAll(".btn-present.active").length;
           const absent = document.querySelectorAll(".btn-absent.active").length;
-          const leave = document.querySelectorAll(".btn-leave.active").length; // NAYA LINE
 
-          // UI par numbers dikhana
           document.getElementById("presentCountDisplay").innerText = present;
           document.getElementById("absentCountDisplay").innerText = absent;
 
-          // YEH LINE LEAVE CARD KO DYNAMIC BANAYEGI
-          if (document.getElementById("leaveCountDisplay")) {
-            document.getElementById("leaveCountDisplay").innerText = leave;
-          }
-
-          // Rate update karna
           if (total > 0) {
             const rate = Math.round((present / total) * 100);
             document.getElementById("rateDisplay").innerText = rate + "%";

@@ -55,9 +55,6 @@
           <a href="{% url 'admin_profile' %}" class="nav-link"
             ><i class="fa-regular fa-user"></i> Profile</a
           >
-          <a href="{% url 'worker_report' %}" class="nav-link"
-            ><i class="fa-regular fa-user"></i> Report
-          </a>
         </nav>
       </aside>
 
@@ -68,6 +65,10 @@
             <p>Mark and manage employee attendance</p>
           </div>
           <div class="header-right">
+            <div class="admin-info">
+              <span>aa</span>
+              <p>Admin</p>
+            </div>
             <button type="submit" form="attendanceForm" class="save-btn">
               <i class="fa-solid fa-floppy-disk"></i> Save Attendance
             </button>
@@ -127,8 +128,7 @@
                         if
                         worker.status|lower=""
                         ="present"
-                        %}checked="checked"
-                        {%
+                        %}checked{%
                         endif
                         %}
                       />
@@ -145,8 +145,7 @@
                         if
                         worker.status|lower=""
                         ="absent"
-                        %}checked="checked"
-                        {%
+                        %}checked{%
                         endif
                         %}
                       />

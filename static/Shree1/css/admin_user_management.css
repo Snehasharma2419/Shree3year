@@ -1,11 +1,11 @@
-/* Layout & Background (Matching the light blue/gray background) */
+/* Layout & Background */
 * {
   box-sizing: border-box;
 }
 body {
   margin: 0;
   font-family: "Inter", "Segoe UI", sans-serif;
-  background-color: #f3f4f6; /* Modern gray/blue tint */
+  background-color: #f3f4f6;
   color: #1f2937;
 }
 
@@ -14,7 +14,7 @@ body {
   min-height: 100vh;
 }
 
-/* Sidebar - Modern & Fixed Width */
+/* Sidebar */
 .sidebar {
   width: 250px;
   background: white;
@@ -78,7 +78,7 @@ body {
   text-align: center;
 }
 
-/* Main Content Area (Spacious) */
+/* Main Content Area */
 .main-body {
   flex: 1;
   padding: 40px 60px;
@@ -116,7 +116,7 @@ body {
   box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
 }
 
-/* The White Card (Large Rounded Corners, soft shadow) */
+/* The White Cards */
 .white-card {
   background: white;
   border-radius: 16px;
@@ -139,14 +139,23 @@ body {
   font-size: 14px;
 }
 
-/* Table Styling (Spacious rows, clean borders) */
+/* =========================================
+   TABLE STYLING - STRICT ALIGNMENT FIX
+   ========================================= */
 .user-data-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed; /* THE MAGIC BULLET: Forces table to obey our specific widths */
+}
+
+/* General Th / Td styling */
+.user-data-table th,
+.user-data-table td {
+  padding: 16px 15px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
 }
 .user-data-table th {
-  text-align: left;
-  padding: 15px;
   color: #6b7280;
   font-size: 13px;
   font-weight: 600;
@@ -154,66 +163,86 @@ body {
   letter-spacing: 0.5px;
   border-bottom: 2px solid #f1f5f9;
 }
-.user-data-table td {
-  padding: 20px 15px;
-  border-bottom: 1px solid #f3f4f6;
-  font-size: 15px;
+
+/* EXACT COLUMN WIDTHS */
+.col-name {
+  width: 100%; /* Flexible, will take all remaining space */
+  text-align: left;
+}
+.col-id {
+  width: 130px; /* Fixed strict width */
+  text-align: left;
+}
+.col-role {
+  width: 120px; /* Fixed strict width */
+  text-align: left;
+}
+.col-status {
+  width: 140px; /* Fixed strict width */
+  text-align: center;
+}
+.col-actions {
+  width: 90px; /* Fixed strict width */
+  text-align: center; /* Ensures header and icon are both perfectly centered inside the 90px block */
 }
 
-.name-cell {
+/* Cell specifics */
+.font-bold {
   font-weight: 600;
   color: #111;
 }
-.role-cell {
+.col-role {
   color: #6b7280;
-} /* Matches photo's slightly muted role text */
-.uni-id-cell code {
+}
+.col-id code {
   background: #f1f5f9;
   padding: 4px 6px;
   border-radius: 4px;
   font-size: 14px;
   color: #4b5563;
 }
+.empty-state {
+  text-align: center;
+  color: #6b7280;
+  padding: 20px;
+}
 
-/* Dynamic Status Badges (Precise Coloring from photo) */
+/* Dynamic Status Badges */
 .status-indicator {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
+  white-space: nowrap;
 }
-
-/* Active/Registered (Green) */
 .status-indicator.registered {
-  background-color: #ecfdf5; /* Tinted Green bg */
-  color: #059669; /* Dark Green text */
+  background-color: #ecfdf5;
+  color: #059669;
 }
-
-/* Pending/Not Used (Orange) */
 .status-indicator.pending {
-  background-color: #fff7ed; /* Tinted Orange bg */
-  color: #ea580c; /* Dark Orange text */
+  background-color: #fff7ed;
+  color: #ea580c;
 }
 
-/* Actions Column (Centered Delete Btn) */
-.centered-head,
-.centered-cell {
-  text-align: center;
-}
+/* Actions Icon */
 .delete-icon-btn {
   color: #ef4444;
   font-size: 18px;
   transition: 0.2s;
+  display: inline-block; /* Helps with centering */
 }
 .delete-icon-btn:hover {
   color: #b91c1c;
   transform: scale(1.1);
 }
 
-/* Modal Design (Modernized, blur background) */
+/* =========================================
+   MODAL & GRID DESIGN
+   ========================================= */
 .modal-wrapper {
   display: none;
   position: fixed;
@@ -296,4 +325,22 @@ body {
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.mb-4 {
+  margin-bottom: 24px;
+}
+
+/* GRID LAYOUT FOR WARDENS/WORKERS */
+.registered-staff-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .registered-staff-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -39,6 +39,8 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     phone = models.CharField(max_length=15, blank=True)
     university_id = models.CharField(max_length=50, unique=True)
+    security_question = models.CharField(max_length=255, null=True, blank=True)
+    security_answer = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return f"{self.username} ({self.role})"
@@ -186,4 +188,21 @@ class LeaveRequest(models.Model):
     reason = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+#sneha ka edit (Notification)
+class Notification(models.Model):
+    TYPE_CHOICES = (
+        ('alert', 'Alert / Absent'),
+        ('leave', 'Leave Status'),
+        ('user', 'New User Registration'),
+        ('finance', 'Salary / Finance'),
+    )
+    # 👈 Yeh field add karein taaki worker ko apna notification mile
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+    message = models.CharField(max_length=255)
+    noti_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='user')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.recipient.username if self.recipient else 'All'}: {self.message}"
     

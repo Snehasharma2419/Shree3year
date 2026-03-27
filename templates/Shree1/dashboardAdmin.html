@@ -22,18 +22,9 @@
             src="{% static 'Shree1/images/logo_img.jpeg' %}"
             alt="SHREE Logo"
             class="nav-logo-file"
-            style="
-              width: 50px;
-              height: 50px;
-              border-radius: 8px;
-              object-fit: contain;
-            "
           />
-          <div>
+          <div class="logo-text">
             <h2 class="logo-name">SHREE</h2>
-            <p style="font-size: 10px; color: #94a3b8">
-              Smart Hostel Record & Employee Evaluation
-            </p>
           </div>
         </div>
 
@@ -41,19 +32,15 @@
           <a href="{% url 'admin_dashboard' %}" class="nav-item active">
             <i class="fa-solid fa-table-cells-large"></i> Dashboard
           </a>
-
           <a href="{% url 'admin_user_management' %}" class="nav-item">
             <i class="fa-solid fa-user-group"></i> User Management
           </a>
-
           <a href="{% url 'admin_attendance' %}" class="nav-item">
             <i class="fa-regular fa-calendar-check"></i> Attendance
           </a>
-
           <a href="{% url 'admin_inventory' %}" class="nav-item">
             <i class="fa-solid fa-box-open"></i> Inventory
           </a>
-
           <a href="{% url 'admin_leave_Management' %}" class="nav-item">
             <i class="fa-solid fa-file-contract"></i> Leave Management
           </a>
@@ -61,115 +48,133 @@
           <a href="{% url 'admin_profile' %}" class="nav-item">
             <i class="fa-regular fa-user"></i> Profile
           </a>
-          <a href="{% url 'worker_report' %}" class="nav-item">
-            <i class="fa-regular fa-user"></i> Report
-          </a>
         </nav>
       </aside>
 
       <main class="main-content">
         <header class="top-header">
-          <div class="user-info">
-            <span class="user-name">{{ admin_name|capfirst }}</span>
-            <span class="user-role">Admin</span>
+          <div class="header-right">
+            <div class="user-profile">
+              <div class="user-info">
+                <span class="user-name"
+                  >{{ admin_name|default:"Shree" }}
+                  <i class="fa-solid fa-chevron-down text-xs"></i
+                ></span>
+                <span class="user-role">Hostel Admin</span>
+              </div>
+            </div>
           </div>
-          <form
-            action="{% url 'logout' %}"
-            method="post"
-            style="display: inline"
-          >
-            {% csrf_token %}
-            <button type="submit" class="logout-btn">
-              <i class="fa-solid fa-right-from-bracket"></i> Logout
-            </button>
-          </form>
         </header>
 
-        <section class="dashboard-intro">
-          <h1>Admin Dashboard</h1>
-          <p>
-            Welcome back, {{ admin_name|capfirst }}! Here's your system
-            overview.
-          </p>
-        </section>
+        <div class="dashboard-header-row">
+          <div class="intro-text">
+            <h1>Admin Dashboard</h1>
+            <p>Overview of system statistics and activities.</p>
+          </div>
+          <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">
+              <i class="fa-solid fa-power-off"></i> Logout
+            </button>
+          </form>
+        </div>
 
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-info">
-              <p>Total Wardens</p>
-              <h3>{{ warden_count }}</h3>
-            </div>
-            <div class="stat-icon blue-bg">
-              <i class="fa-solid fa-user-tie"></i>
+        <div class="main-stats-grid">
+          <div class="big-stat-card border-blue">
+            <div class="card-content">
+              <div class="avatar-circle bg-blue-light">
+                <img
+                  src="{% static 'Shree1/images/warden_logo.jpeg' %}"
+                  alt="Warden"
+                  class="avatar-img"
+                />
+              </div>
+              <div class="stat-details">
+                <h3>Wardens</h3>
+                <div class="count-row">
+                  <h2>{{ warden_count|default:"0" }}</h2>
+                  <span>Active</span>
+                </div>
+                <p class="status-text success-text">
+                  <i class="fa-solid fa-check"></i> All wardens on duty
+                </p>
+              </div>
             </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-info">
-              <p>Total Workers</p>
-              <h3>{{ worker_count }}</h3>
-            </div>
-            <div class="stat-icon green-bg">
-              <i class="fa-solid fa-users"></i>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-info">
-              <p>Total Suppliers</p>
-              <h3>{{ supplier_count }}</h3>
-            </div>
-            <div class="stat-icon orange-bg">
-              <i class="fa-solid fa-truck-field"></i>
+
+          <div class="big-stat-card border-green">
+            <div class="card-content">
+              <div class="avatar-circle bg-green-light">
+                <img
+                  src="{% static 'Shree1/images/worker_logo.jpeg' %}"
+                  alt="Worker"
+                  class="avatar-img"
+                />
+              </div>
+              <div class="stat-details">
+                <h3>Workers</h3>
+                <div class="count-row">
+                  <h2>{{ worker_count|default:"0" }}</h2>
+                  <span>Total</span>
+                </div>
+                <div class="attendance-dots">
+                  <p>
+                    <span class="dot green"></span>
+                    <strong>{{ present_workers|default:"0" }}</strong> Present
+                    Today
+                  </p>
+                  <p>
+                    <span class="dot red"></span>
+                    <strong>{{ absent_workers|default:"0" }}</strong> Absent
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="details-grid">
-          <div class="card-panel">
-            <h3>Inventory Alerts</h3>
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Current</th>
-                  <th>Required</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Rice (kg)</td>
-                  <td class="text-warning">50</td>
-                  <td>100</td>
-                </tr>
-                <tr>
-                  <td>Cooking Oil (L)</td>
-                  <td class="text-danger">15</td>
-                  <td>30</td>
-                </tr>
-                <tr>
-                  <td>Cleaning Supplies</td>
-                  <td class="text-danger">5</td>
-                  <td>20</td>
-                </tr>
-              </tbody>
-            </table>
+        <div class="notifications-panel">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-bell text-orange"></i> Notifications</h3>
+            <a href="#" class="view-all-link">View All</a>
           </div>
 
-          <div class="card-panel">
-            <h3>Recent Activities</h3>
-            <ul class="activity-list">
-              <li>
-                <span class="dot blue"></span> New worker registered
-                <small>10 mins ago</small>
-              </li>
-              <li>
-                <span class="dot green"></span> Leave approved by Warden
-                <small>25 mins ago</small>
-              </li>
-              <li>
-                <span class="dot orange"></span> Low stock alert: Oil
-                <small>1 hour ago</small>
-              </li>
-            </ul>
+          <div class="notification-list">
+            {% for note in recent_notifications %}
+            <div class="noti-item">
+              {% if note.noti_type == 'alert' %}
+              <div class="noti-icon bg-red-light text-red">
+                <i class="fa-solid fa-briefcase"></i>
+              </div>
+              {% elif note.noti_type == 'leave' %}
+              <div class="noti-icon bg-yellow-light text-yellow">
+                <i class="fa-regular fa-file-lines"></i>
+              </div>
+              {% elif note.noti_type == 'finance' %}
+              <div class="noti-icon bg-green-light text-green">
+                <i class="fa-solid fa-indian-rupee-sign"></i>
+              </div>
+              {% else %}
+              <div class="noti-icon bg-blue-light text-blue">
+                <i class="fa-solid fa-user-group"></i>
+              </div>
+              {% endif %}
+
+              <p class="noti-text">{{ note.message }}</p>
+
+              <span class="noti-time">{{ note.created_at|timesince }} ago</span>
+            </div>
+
+            {% empty %}
+            <div
+              class="noti-item"
+              style="justify-content: center; padding: 30px"
+            >
+              <p class="noti-text" style="color: #64748b; text-align: center">
+                No new activities or notifications yet.
+              </p>
+            </div>
+            {% endfor %}
           </div>
         </div>
       </main>

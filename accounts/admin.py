@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User, UniversityID, Worker, Warden, Supplier, Attendance, Inventory, LeaveRequest, DeliveryOrder
-
+from .models import Notification
 
 
 
@@ -77,9 +77,7 @@ class LeaveRequestAdmin(admin.ModelAdmin):
         queryset.update(status='Rejected')
     reject_leave.short_description = "Mark selected requests as Rejected"
 
-
-
-
+admin.site.register(Notification) #sneha edit
 
 # OTP aur baki details table format mein dekhne ke liye
 class ShipmentAdmin(admin.ModelAdmin):

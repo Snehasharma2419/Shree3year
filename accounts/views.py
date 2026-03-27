@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
-from .models import User, UniversityID, Worker, Warden, Supplier, Attendance, Inventory, LeaveRequest
+from .models import User, UniversityID, Worker, Warden, Supplier, Attendance, Inventory, LeaveRequest, Notification
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -208,7 +208,8 @@ def delete_user(request, user_id):
 # 4. DASHBOARDS & FEATURES
 # -------------------------------
 
-@login_required
+
+@login_required #sneha edit
 def attendance_view(request):
     try:
         warden = Warden.objects.get(user=request.user)
@@ -216,75 +217,123 @@ def attendance_view(request):
         return redirect('welcome_role')
 
     master_list = UniversityID.objects.filter(role='worker')
-    today_date = timezone.now().date()
+    
+    # --- 1. DATE HANDLING ---
+    today = timezone.now().date()
+    today_str = today.strftime('%Y-%m-%d')
 
+    selected_date_str = request.GET.get('date')
+    if selected_date_str:
+        try:
+            current_date_obj = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+            if current_date_obj > today:
+                current_date_obj = today
+            current_date_str = current_date_obj.strftime('%Y-%m-%d')
+        except ValueError:
+            current_date_obj = today
+            current_date_str = today_str
+    else:
+        current_date_obj = today
+        current_date_str = today_str
+
+    # --- 2. LOCKING LOGIC ---
+    existing_attendance = Attendance.objects.filter(date=current_date_obj)
+    is_locked = existing_attendance.exists()
+
+    # --- 3. SAVE ATTENDANCE (POST REQUEST) ---
     if request.method == "POST":
-        date_str = request.POST.get('attendance_date')
-
-        if date_str != str(today_date):
-            messages.error(request, "Attendance sirf aaj ki date (Today) ke liye li ja sakti hai!")
-            return redirect('attendance')
+        if is_locked:
+            messages.error(request, f"Attendance for {current_date_str} is already locked!")
+            return redirect(f"{reverse('attendance')}?date={current_date_str}")
 
         for person in master_list:
             status = request.POST.get(f'status_{person.university_id}')
-
-            print("Worker:", person.university_id, "Status:", status)
-
             if status:
-                Attendance.objects.update_or_create(
+                # Attendance Record Create karein
+                Attendance.objects.create(
                     worker_master=person,
-                    date=date_str,
-                    defaults={'status': status, 'warden': warden}
+                    date=current_date_obj,
+                    status=status.strip(),
+                    warden=warden
                 )
 
-        messages.success(request, f"Attendance for {today_date} has been saved.")
-        return redirect('attendance')
+                # --- 🔔 SNEHA NOTIFICATION LOGIC (ONLY FOR ABSENT) ---
+                if status.strip().lower() == 'absent':
+                    # Master record se User dhoondo taaki recipient mil sake
+                    worker_user = User.objects.filter(university_id=person.university_id).first()
+                    
+                    if worker_user:
+                        Notification.objects.create(
+                            recipient=worker_user,
+                            message=f"Warden marked you ABSENT for {current_date_str}.",
+                            noti_type='alert' # Red alert badge
+                        )
 
-    # 👇 ADD THIS BLOCK
-    existing_attendance = Attendance.objects.filter(date=today_date)
+        messages.success(request, f"Attendance for {current_date_str} saved. Absent workers notified.")
+        return redirect(f"{reverse('attendance')}?date={current_date_str}")
 
-    attendance_dict = {
-        att.worker_master.university_id: att.status
-        for att in existing_attendance
-    }
+    # --- 4. PREPARE DATA FOR HTML ---
+    worker_data_list = []
+    for person in master_list:
+        status = 'Present' # Default UI
+        
+        if is_locked:
+            att_record = existing_attendance.filter(worker_master=person).first()
+            if att_record:
+                status = att_record.status
 
+        worker_data_list.append({
+            'worker_id': person.university_id,
+            'name': person.full_name,
+            'status': status
+        })
+
+    # --- 5. SEND CONTEXT ---
     context = {
-        'workers': master_list,
-        'today': today_date.strftime('%Y-%m-%d'),
+        'workers': worker_data_list,
+        'current_date_str': current_date_str,
+        'today_str': today_str,
+        'is_locked': is_locked,
         'warden': warden,
-        'attendance_dict': attendance_dict
     }
 
     return render(request, 'Shree1/warden_attendance.html', context)
+
+
+@login_required
 @login_required
 def worker_dashboard(request):
     try:
-        # 1. Profile aur Master Record Linkage (Aapka Security Logic)
+        # 1. Profile aur Master Record Linkage
         worker_profile = Worker.objects.get(user=request.user)
         master_record = UniversityID.objects.get(university_id=worker_profile.worker_id)
 
     except (Worker.DoesNotExist, UniversityID.DoesNotExist):
         return redirect('welcome_role')
 
-    # 2. Attendance Metrics (Aapke Friend ka Dynamic Logic)
+    # 2. Attendance Metrics
     # Pura record fetch karna summary ke liye
     all_attendance = Attendance.objects.filter(worker_master=master_record)
     
-    # Latest 5 records table mein dikhane ke liye (Aapka Filter)
+    # Latest 5 records table mein dikhane ke liye
     latest_attendance = all_attendance.order_by('-date')[:5]
 
     present_days = all_attendance.filter(status='Present').count()
     total_days = all_attendance.count()
 
-    # 3. Dynamic Leave & Notifications (Added New Features)
-    # Worker ki pending leaves count karna
-    pending_leaves = LeaveRequest.objects.filter(
-        worker=worker_profile, 
-        status='Pending'
+    # 3. Dynamic Notifications Logic (SNEHA EDIT)
+    # 👈 Yahan hum Notification model se worker ke specific messages nikal rahe hain
+    notifications = Notification.objects.filter(
+        recipient=request.user
+    ).order_by('-created_at')[:5] # Latest 5 notifications
+
+    # Unread notifications ka count (Badge ke liye)
+    notifications_count = Notification.objects.filter(
+        recipient=request.user, 
+        is_read=False
     ).count()
 
-    # Leave balance (Worker profile table se real data)
-    # Agar model mein leave_balance field hai toh:
+    # 4. Leave Balance
     leave_balance = getattr(worker_profile, 'leave_balance', 0)
 
     context = {
@@ -298,10 +347,11 @@ def worker_dashboard(request):
         'present_days': present_days,
         'total_days': total_days,
         
-        # New Dynamic Features
+        # Notifications & Real-time Data
+        'notifications': notifications,       # Dashboard loop ke liye
+        'notifications_count': notifications_count, # Icon par red dot dikhane ke liye
         'leave_balance': leave_balance,
-        'notifications_count': pending_leaves, # Pending requests ko as notification dikhayenge
-        'salary': 15000, # Abhi static hai, baad mein calculation logic lagayenge
+        'salary': 15000, # Future logic: present_days * per_day_salary
     }
 
     return render(request, 'Shree1/dashboardWorker.html', context)
@@ -515,32 +565,35 @@ def update_inventory_stock(request):
     return redirect('inventory')
 
 
-
+@login_required
 def warden_leave_view(request):
     try:
         current_warden = Warden.objects.get(user=request.user)
     except Warden.DoesNotExist:
         messages.error(request, "Warden profile not found.")
-        return redirect('login')
+        return redirect('welcome_role')
 
     if request.method == "POST":
-        action_type = request.POST.get('action_type')
+        # HTML form ke name attributes se match karna chahiye
+        action_type = request.POST.get('action_type') 
         leave_type = request.POST.get('leave_type')
         start_date_val = request.POST.get('start_date')
         end_date_val = request.POST.get('end_date')
-        reason = request.POST.get('reason')
+        reason = request.POST.get('reason', '')
 
+        # Basic Date Validation
         try:
             s_date = date.fromisoformat(start_date_val)
             e_date = date.fromisoformat(end_date_val)
-        except ValueError:
+        except (ValueError, TypeError):
             messages.error(request, "Invalid date format.")
             return redirect('warden_leave')
 
         if s_date < date.today():
-            messages.error(request, "Pichli dates valid nahi hain.")
+            messages.error(request, "Past dates are not allowed.")
             return redirect('warden_leave')
 
+        # Logic for Saving
         if action_type == 'self':
             LeaveRequest.objects.create(
                 warden=current_warden,
@@ -548,42 +601,45 @@ def warden_leave_view(request):
                 leave_type=leave_type,
                 start_date=s_date,
                 end_date=e_date,
-                reason=reason
+                reason=reason,
+                status='Pending'
             )
-            messages.success(request, "Warden leave request created.")
+            messages.success(request, "Your leave request (Warden) created.")
         else:
-            w_id = request.POST.get('worker_id') 
+            w_id = request.POST.get('worker_id')
+            if not w_id:
+                messages.error(request, "Please select a worker.")
+                return redirect('warden_leave')
+                
             try:
-                # Reflection logic ensure karta hai ki UniversityID add hote hi 
-                # Worker profile ban jati hai
+                # UniversityID se Worker profile dhoondna
                 worker_obj = Worker.objects.get(worker_id=w_id)
                 LeaveRequest.objects.create(
                     worker=worker_obj,
                     warden=current_warden,
                     is_warden_request=False,
                     leave_type=leave_type,
-                    start_date=s_date, 
+                    start_date=s_date,
                     end_date=e_date,
-                    reason=reason
+                    reason=reason,
+                    status='Pending'
                 )
-                messages.success(request, f"Request for {worker_obj.name} created.")
+                messages.success(request, f"Leave request for {worker_obj.name} submitted.")
             except Worker.DoesNotExist:
-                messages.error(request, "Worker record not found in profile table.")
+                messages.error(request, f"Worker profile with ID {w_id} not found.")
 
         return redirect('warden_leave')
 
-    # UPDATED: Seedha UniversityID table se workers ko filter karein
+    # GET Request: Data Fetching
+    # 'select_related' add kiya hai taaki 'worker.name' loop mein aa sake
     context = {
         'workers': UniversityID.objects.filter(role='worker'), 
         'today': date.today().strftime('%Y-%m-%d'),
         'warden': current_warden,
-        'pending': LeaveRequest.objects.filter(warden=current_warden, status='Pending'),
-        'history': LeaveRequest.objects.filter(warden=current_warden).exclude(status='Pending')
+        'pending': LeaveRequest.objects.filter(warden=current_warden, status='Pending').select_related('worker'),
+        'history': LeaveRequest.objects.filter(warden=current_warden).exclude(status='Pending').select_related('worker').order_by('-created_at')
     }
     return render(request, 'Shree1/warden_leave.html', context)
-
-
-
 
 
 @login_required
