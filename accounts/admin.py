@@ -1,88 +1,90 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, UniversityID, Worker, Warden, Supplier, Attendance, Inventory, LeaveRequest, DeliveryOrder
-from .models import Notification
+from .models import (
+    User, UniversityID, Worker, Warden, Supplier, 
+    Attendance, Inventory, LeaveRequest, DeliveryOrder, 
+    DailyUsage, Notification
+)
 
-
-
-
-# 1. CUSTOM USER ADMIN (Registration logic fix)
+# 1. CUSTOM USER ADMIN
 class CustomUserAdmin(UserAdmin):
-    # 'Add User' screen par extra fields dikhane ke liye
     add_fieldsets = UserAdmin.add_fieldsets + (
         (None, {'fields': ('university_id', 'role')}),
     )
-    
-    # 'Change User' (Edit) screen par extra fields dikhane ke liye
     fieldsets = UserAdmin.fieldsets + (
         (None, {'fields': ('university_id', 'role', 'phone')}),
     )
-    
     list_display = ['username', 'university_id', 'role', 'is_staff']
 
-# User ko sirf EK BAAR register karein CustomUserAdmin ke saath
 admin.site.register(User, CustomUserAdmin)
 
-# 2. UNIVERSITY ID & PROFILES
+# 2. SIMPLE REGISTRATIONS
 admin.site.register(UniversityID)
 admin.site.register(Worker)
 admin.site.register(Supplier)
+admin.site.register(Notification)
 
+# 3. WARDEN ADMIN
 class WardenAdmin(admin.ModelAdmin):
     list_display = ('warden_id', 'name', 'phone_number', 'leave_balance')
 
 admin.site.register(Warden, WardenAdmin)
 
-
+# 4. ATTENDANCE ADMIN
 class AttendanceAdmin(admin.ModelAdmin):
-    
     @admin.display(description="Status")  
     def get_status(self, obj):
         return obj.status
     
-    list_display = ('worker_master', 'date', 'get_status', 'warden') # Columns to show
-    list_filter = ('date', 'status', 'warden') # Sidebar filters
-    search_fields = ('worker_master__full_name', 'worker_master__university_id') # Search bar
+    list_display = ('worker_master', 'date', 'get_status', 'warden')
+    list_filter = ('date', 'status', 'warden')
+    search_fields = ('worker_master__full_name', 'worker_master__university_id')
 
 admin.site.register(Attendance, AttendanceAdmin)
 
-@admin.register(Inventory)
-class InventoryAdmin(admin.ModelAdmin):
-    # Admin panel par jo columns aap dekhna chahte hain
-    list_display = ('item_id', 'item_name', 'current_stock', 'required_stock', 'unit')
-    # Search karne ke liye fields
-    search_fields = ('item_id', 'item_name')
-
-
-
+# 5. LEAVE REQUEST ADMIN
 @admin.register(LeaveRequest)
 class LeaveRequestAdmin(admin.ModelAdmin):
-    # Admin panel ki table mein kaunse columns dikhen
     list_display = ('worker', 'leave_type', 'start_date', 'end_date', 'status', 'warden')
-    
-    # Side mein filter lagane ke liye
     list_filter = ('status', 'leave_type', 'start_date')
-    
-    # Search bar ke liye
     search_fields = ('worker__name', 'warden__name')
-
-    # Status badalne ke liye custom actions
     actions = ['approve_leave', 'reject_leave']
 
     def approve_leave(self, request, queryset):
         queryset.update(status='Approved')
-    approve_leave.short_description = "Mark selected requests as Approved"
-
+    
     def reject_leave(self, request, queryset):
         queryset.update(status='Rejected')
-    reject_leave.short_description = "Mark selected requests as Rejected"
 
-admin.site.register(Notification) #sneha edit
-
-# OTP aur baki details table format mein dekhne ke liye
+# 6. SHIPMENT / DELIVERY ORDER
 class ShipmentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'item', 'otp', 'status', 'created_at') 
-    # Jo fields aap dekhna chahte hain unhe yahan likhein
+    list_display = ('id', 'item', 'otp', 'status', 'created_at')
 
 admin.site.register(DeliveryOrder, ShipmentAdmin)
 
+# 7. INVENTORY & DAILY USAGE (The AI Logic Part)
+class DailyUsageInline(admin.TabularInline):
+    model = DailyUsage
+    extra = 1
+    fields = ('quantity_used', 'date')
+    readonly_fields = ('date',)
+
+@admin.register(Inventory)
+class InventoryAdmin(admin.ModelAdmin):
+    list_display = ('item_id', 'item_name', 'current_stock', 'required_stock', 'unit', 'stock_status')
+    search_fields = ('item_id', 'item_name')
+    inlines = [DailyUsageInline]
+
+    def stock_status(self, obj):
+        if obj.current_stock <= (obj.required_stock * 0.2):
+            return "⚠️ Critical (Low Stock)"
+        elif obj.current_stock <= (obj.required_stock * 0.5):
+            return "🟡 Low"
+        return "✅ Good"
+    stock_status.short_description = 'AI Stock Alert'
+
+@admin.register(DailyUsage)
+class DailyUsageAdmin(admin.ModelAdmin):
+    list_display = ('item', 'quantity_used', 'date')
+    list_filter = ('date', 'item')
+    search_fields = ('item__item_name',)

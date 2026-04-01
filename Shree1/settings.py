@@ -93,3 +93,30 @@ LOCALE_PATHS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    
+    # Ye do line missing hain ya inka sequence galat hai
+    'django.contrib.auth.middleware.AuthenticationMiddleware', 
+    'django.contrib.messages.middleware.MessageMiddleware',
+    
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # Aapka custom NoCacheMiddleware (Isse sabse niche rakhein)
+    'Shree1.middleware.NoCacheMiddleware', 
+
+    
+]
+
+# settings.py ke bilkul niche:
+LOGIN_URL = 'welcome_role'  # Default login URL for @login_required
+LOGOUT_REDIRECT_URL = 'welcome_role'
+
+# Ek ghante baad session apne aap expire ho jaye
+SESSION_COOKIE_AGE = 3600 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True

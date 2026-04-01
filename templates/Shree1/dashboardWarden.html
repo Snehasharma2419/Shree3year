@@ -45,21 +45,23 @@
 
       <main class="main-content">
         <header class="top-header">
-          <div class="user-info">
-            <span class="user-name"
-              >{{ warden.name|default:"Anita Warden" }}</span
-            >
-            <span class="user-role">Warden</span>
+    <div class="user-info">
+        <span class="user-name">{{ warden.name|default:"Anita Warden" }}</span>
+        <span class="user-role">Warden</span>
+    </div>
+
+    <div class="header-right">
+        <div class="logout-container">
+    <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">
+        {% csrf_token %}
+    </form>
+    
+    <a href="javascript:void(0)" class="logout-btn" onclick="logoutUser()">
+                 Logout
+            </a>
           </div>
-          <form
-            action="{% url 'logout' %}"
-            method="POST"
-            style="margin-left: 20px"
-          >
-            {% csrf_token %}
-            <button type="submit" class="logout-btn">Logout</button>
-          </form>
-        </header>
+    </div>
+</header>
 
         <section class="dashboard-intro">
           <h1>Warden Dashboard</h1>
@@ -180,5 +182,23 @@
         </div>
       </main>
     </div>
+    <script src="{% static 'Shree1/js/dashboardWarden.js' %}"></script>
+
+<script>
+    // 1. Logout function
+    function logoutUser() {
+        if (confirm("Are you sure you want to logout?")) {
+            // Check karein ki kya ye ID niche form se match kar rahi hai
+            document.getElementById('logout-form').submit();
+        }
+    }
+
+    // 2. Anti-Back Logic
+    window.onpageshow = function(event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    };
+</script>
   </body>
 </html>

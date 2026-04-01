@@ -87,12 +87,14 @@
             <span class="user-name">{{ user.username|title }}</span>
             <span class="user-role">Official KUTIR </span>
           </div>
-          <form action="{% url 'logout' %}" method="post">
-            {% csrf_token %}
-            <button class="logout-btn" type="submit">
-              <i class="fa-solid fa-right-from-bracket"></i> Logout
-            </button>
-          </form>
+          <div class="logout-container">
+            <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">
+              {% csrf_token %}
+            </form>
+            <a href="javascript:void(0)" class="logout-btn" onclick="logoutUser()">
+               Logout
+            </a>
+          </div>
         </header>
 
         <section class="dashboard-intro">
@@ -327,6 +329,22 @@
       </main>
     </div>
 
-    <script src="{% static 'Shree1/js/dashboardSupplier.js' %}"></script>
+    <script src="{% static 'Shree1/js/dashboardSupplier.js' %}">
+      
+        // 1. Logout karne ke liye confirm aur form submit
+        function logoutUser() {
+            if (confirm("Are you sure you want to logout?")) {
+                document.getElementById('logout-form').submit();
+            }
+        }
+
+        // 2. Back button dabane par page reload karne ke liye
+        window.onpageshow = function(event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        };
+    
+    </script>
   </body>
 </html>

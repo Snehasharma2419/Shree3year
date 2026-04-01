@@ -89,3 +89,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Page load hote hi ek baar state check kar lo (in case of refresh with browser cache)
     updateButtonState();
 });
+
+function logoutUser() {
+    if (confirm("Are you sure you want to logout?")) {
+        document.getElementById('logout-form').submit();
+    }
+}
+
+window.onpageshow = function(event) {
+    if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+        window.location.reload();
+    }
+};

@@ -3,119 +3,125 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Inventory - SHREE</title>
-    <link
-      rel="stylesheet"
-      href="{% static 'Shree1/css/dashboardAdmin.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="{% static 'Shree1/css/admin_inventory.css' %}"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inventory Management - SHREE</title>
+    <link rel="stylesheet" href="{% static 'Shree1/css/dashboardAdmin.css' %}" />
+    <link rel="stylesheet" href="{% static 'Shree1/css/admin_inventory.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   </head>
   <body>
     <div class="container">
       <aside class="sidebar">
         <div class="logo-section">
-          <img
-            src="{% static 'Shree1/images/logo_img.jpeg' %}"
-            alt="Logo"
-            class="nav-logo-file"
-          />
+          <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="Logo" class="nav-logo-file" />
           <h2 class="logo-name">SHREE</h2>
         </div>
         <nav class="nav-menu">
-          <a href="{% url 'admin_dashboard' %}" class="nav-item"
-            ><i class="fa-solid fa-table-cells-large"></i> Dashboard</a
-          >
-          <a href="{% url 'admin_user_management' %}" class="nav-item"
-            ><i class="fa-solid fa-users"></i> User Management</a
-          >
-          <a href="{% url 'admin_attendance' %}" class="nav-item"
-            ><i class="fa-regular fa-calendar-check"></i> Attendance</a
-          >
-          <a href="{% url 'admin_inventory' %}" class="nav-item active"
-            ><i class="fa-solid fa-box-open"></i> Inventory</a
-          >
-          <a href="{% url 'admin_leave_Management' %}" class="nav-item"
-            ><i class="fa-solid fa-file-contract"></i> Leave Management</a
-          >
-          <a href="{% url 'admin_profile' %}" class="nav-item"
-            ><i class="fa-regular fa-user"></i> Profile</a
-          >
-          <a href="{% url 'worker_report' %}" class="nav-item"
-            ><i class="fa-regular fa-user"></i> Report
-          </a>
+          <a href="{% url 'admin_dashboard' %}" class="nav-item"><i class="fa-solid fa-table-cells-large"></i> Dashboard</a>
+          <a href="{% url 'admin_user_management' %}" class="nav-item"><i class="fa-solid fa-users"></i> User Management</a>
+          <a href="{% url 'admin_attendance' %}" class="nav-item"><i class="fa-regular fa-calendar-check"></i> Attendance</a>
+          <a href="{% url 'admin_inventory' %}" class="nav-item active"><i class="fa-solid fa-box-open"></i> Inventory</a>
+          <a href="{% url 'admin_leave_Management' %}" class="nav-item"><i class="fa-solid fa-file-contract"></i> Leave Management</a>
+          <a href="{% url 'admin_profile' %}" class="nav-item"><i class="fa-regular fa-user"></i> Profile</a>
+          <a href="{% url 'worker_report' %}" class="nav-item"><i class="fa-regular fa-chart-bar"></i> Report</a>
         </nav>
       </aside>
 
       <main class="main-content">
         <header class="page-header-row">
           <h1>Inventory Management</h1>
-          <button class="add-btn">
+          <button id="openModalBtn" class="add-btn">
             <i class="fa-solid fa-plus"></i> Add New Item
           </button>
         </header>
 
         <section class="inventory-stats">
-          <div class="stat-card">
-            <span>Total Items</span>
-            <h2>{{ items|length }}</h2>
-          </div>
-          <div class="stat-card">
-            <span>Low Stock</span>
-            <h2 class="text-orange">--</h2>
-          </div>
-          <div class="stat-card">
-            <span>Out of Stock</span>
-            <h2 class="text-red">--</h2>
-          </div>
-          <div class="stat-card">
-            <span>Status</span>
-            <h2 class="text-green">Healthy</h2>
-          </div>
+          <div class="stat-card"><span>Total Items</span><h2>{{ items|length }}</h2></div>
+          <div class="stat-card"><span>Low Stock</span><h2 class="text-orange">{{ low_count }}</h2></div>
+          <div class="stat-card"><span>Critical Stock</span><h2 class="text-red">{{ critical_count }}</h2></div>
+          <div class="stat-card"><span>System Status</span><h2 class="{% if critical_count > 0 %}text-red{% else %}text-green{% endif %}">{{ status }}</h2></div>
         </section>
 
         <div class="content-card">
+          <h3>Current Stock Levels</h3>
           <table class="inventory-table">
             <thead>
-              <tr>
-                <th>Item ID</th>
-                <th>Item Name</th>
-                <th>Stock Level</th>
-              </tr>
+              <tr><th>Item ID</th><th>Item Name</th><th>Stock Level</th><th>Status</th></tr>
             </thead>
             <tbody>
               {% for item in items %}
               <tr>
                 <td><span class="id-badge">#{{ forloop.counter }}</span></td>
-                <td class="font-bold">
-                  <i class="fa-solid fa-box item-icon"></i>{{ item.item_name }}
-                </td>
-                <td>
-                  <span
-                    class="{% if item.current_stock < 10 %}text-red{% else %}text-green{% endif %}"
-                  >
-                    {{ item.current_stock }}
-                  </span>
-                  <span class="date-sub">Units</span>
-                </td>
+                <td class="font-bold"><i class="fa-solid fa-box item-icon"></i> {{ item.item_name }}</td>
+                <td><span class="{% if item.get_status == 'Critical' %}text-red{% elif item.get_status == 'Low' %}text-orange{% else %}text-green{% endif %}">{{ item.current_stock }}</span> <span class="unit-label">{{ item.unit }}</span></td>
+                <td><span class="status-badge {{ item.get_status|lower }}">{{ item.get_status }}</span></td>
               </tr>
               {% empty %}
-              <tr>
-                <td colspan="3" style="text-align: center; padding: 20px">
-                  No items found in inventory.
-                </td>
-              </tr>
+              <tr><td colspan="4" class="empty-msg">No items found in database.</td></tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
+
+        <header class="page-header-row" style="margin-top: 40px;"><h1>Recent Consumption (Daily Usage)</h1></header>
+        <div class="content-card">
+            <table class="inventory-table">
+                <thead><tr><th>Date</th><th>Item Name</th><th>Quantity Used</th></tr></thead>
+                <tbody>
+                    {% for usage in recent_usage %}
+                    <tr>
+                        <td>{{ usage.date|date:"d M Y" }}</td>
+                        <td class="font-bold">{{ usage.item.item_name }}</td>
+                        <td><span class="text-red">- {{ usage.quantity_used }}</span> <span class="unit-label">{{ usage.item.unit }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="empty-msg">No usage history recorded.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
       </main>
     </div>
+
+    <div id="addItemModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Add New Inventory Item</h2>
+          <span class="close-modal">&times;</span>
+        </div>
+        <form method="POST" action="{% url 'admin_inventory' %}">
+          {% csrf_token %}
+          <div class="form-group">
+            <label>Item Name</label>
+            <input type="text" name="item_name" required placeholder="e.g. Rice">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Current Stock</label>
+              <input type="number" step="0.1" name="current_stock" required>
+            </div>
+            <div class="form-group">
+              <label>Min. Required</label>
+              <input type="number" step="0.1" name="required_stock" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Unit</label>
+            <select name="unit">
+              <option value="kg">kg</option>
+              <option value="lit">lit</option>
+              <option value="pcs">pcs</option>
+              <option value="pkt">pkt</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel">Cancel</button>
+            <button type="submit" class="btn-submit">Save Item</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="{% static 'Shree1/js/admin_inventory.js' %}"></script>
   </body>
 </html>

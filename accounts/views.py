@@ -12,12 +12,9 @@ from django.db import transaction
 from django.contrib import messages
 import re
 from django.http import HttpResponse
-
+from django.views.decorators.cache import never_cache
+from django.urls import reverse
      
-
-def login_selection(request):
-    return render(request, 'Shree1/login_role.html')
-
 
 # -------------------------------
 # 1. NAVIGATION PAGES
@@ -303,6 +300,11 @@ def attendance_view(request):
 @login_required
 @login_required
 def worker_dashboard(request):
+
+
+    if not request.user.is_authenticated:
+        return redirect('worker_login')
+
     try:
         # 1. Profile aur Master Record Linkage
         worker_profile = Worker.objects.get(user=request.user)
@@ -368,7 +370,13 @@ from django.db.models import F
 from .models import Inventory, DeliveryOrder # DeliveryOrder model zaroori hai
 
 @login_required
+@never_cache
 def supplier_dashboard(request):
+
+    if not request.user.is_authenticated:
+        return redirect('suplier_login')
+
+
     # 1. Wo items nikalna jinka stock kam hai (Deficit calculation ke saath)
     # Hum annotation use karenge deficit calculate karne ke liye
     pending_items = Inventory.objects.filter(
@@ -686,7 +694,12 @@ def warden_profile(request):
 
 
 
+@never_cache
 def admin_dashboard(request):
+
+    if not request.user.is_authenticated:
+        return redirect('admin_login')
+
     # 1. Fetch Totals for the Statistic Cards
     total_wardens = Warden.objects.count()
     total_workers = Worker.objects.count()
@@ -709,6 +722,7 @@ def admin_dashboard(request):
 # 5. LOGIN PAGES (FUNCTIONAL)
 # -------------------------------
 
+@never_cache
 def worker_login(request):
     if request.method == "POST":
         u_id = request.POST.get('worker_id')  # Matches HTML name="worker_id"
@@ -720,6 +734,9 @@ def worker_login(request):
         messages.error(request, "Invalid Worker Credentials")
     return render(request, 'Shree1/loginWorker.html')
 
+
+
+@never_cache
 def warden_login(request):
     if request.method == "POST":
         u_id = request.POST.get('warden_id') # Matches HTML name="warden_id"
@@ -731,6 +748,10 @@ def warden_login(request):
         messages.error(request, "Invalid Warden Credentials")
     return render(request, 'Shree1/loginWarden.html')
 
+
+
+#@login_required(login_url='login') 
+@never_cache
 def supplier_login(request):
     if request.method == "POST":
         u_id = request.POST.get('supplier_id') # Form field name
@@ -746,6 +767,10 @@ def supplier_login(request):
     return render(request, 'Shree1/loginSupplier.html')
 
 
+
+
+#@login_required
+@never_cache
 def admin_login(request):
     if request.method == "POST":
         u_id = request.POST.get('user_id') # Matches HTML name="user_id"
@@ -893,8 +918,12 @@ def supplier_confirm_delivery(request):
 
 from .models import Warden, Worker, LeaveRequest, Inventory, DeliveryOrder # DeliveryOrder import karein
 
-@login_required(login_url='warden_login')
+
 def warden_dashboard(request):
+
+    if not request.user.is_authenticated:
+        return redirect('warden_login')
+
     try:
         warden = Warden.objects.get(user=request.user)
     except Warden.DoesNotExist:
@@ -1037,3 +1066,46 @@ def forget_password(request):
             messages.error(request, "User not found")
 
     return render(request, 'Shree1/forget_password.html')
+
+
+
+
+     #ayushi
+from django.shortcuts import render
+from .models import Inventory, DailyUsage # Ensure models are imported
+
+def admin_inventory(request):
+    # Saare inventory items fetch karein
+    items = Inventory.objects.all()
+    
+    # 1. Critical Stock Count (20% se kam)
+    critical_count = sum(1 for item in items if item.get_status == "Critical")
+    
+    # 2. Low Stock Count (50% se kam)
+    low_count = sum(1 for item in items if item.get_status == "Low")
+    
+    # 3. Recent Daily Usage Data (Latest 10 entries)
+    # select_related se performance achi hogi kyunki item ka naam sath fetch hoga
+    recent_usage = DailyUsage.objects.select_related('item').order_by('-date', '-id')[:10]
+
+    # Context dictionary jo HTML ko data pass karega
+    context = {
+        'items': items,
+        'critical_count': critical_count,
+        'low_count': low_count,
+        'recent_usage': recent_usage,
+    }
+    
+    return render(request, 'Shree1/admin_inventory.html', context)
+
+
+# accounts/views.py
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+from django.contrib import messages
+
+def logout_view(request):
+    logout(request)           # Django user session delete karta hai
+    request.session.flush()   # ZAROORI: Browser ki saari memory/cookies uda deta hai
+    messages.success(request, "You have been logged out.")
+    return redirect('welcome_role') # Jahan aap bhejna chahte hain

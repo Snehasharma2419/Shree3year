@@ -19,6 +19,9 @@ urlpatterns = [
     path('login/supplier/', views.supplier_login, name='supplier_login'),
     path('login/admin/', views.admin_login, name='admin_login'),
 
+    #-------------LOGOUT--------------
+    path('logout/', views.logout_view, name='logout'), # 'auth_views' wala hata dein
+
     # ---------- DASHBOARDS ----------
     path('dashboard/worker/', views.worker_dashboard, name='worker_dashboard'),
     path('dashboard/warden/', views.warden_dashboard, name='warden_dashboard'),
@@ -52,6 +55,10 @@ urlpatterns = [
     path('worker-report/', views.worker_report, name='worker_report'),
     
     path('download-report/', views.download_worker_report, name='download_report'),
+
+     #ayushi
+    path('admin/inventory/', views.admin_inventory, name='admin_inventory'),
+
     
 
 ]

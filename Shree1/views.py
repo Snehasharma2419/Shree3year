@@ -312,3 +312,57 @@ def delete_uni_id(request, id): # sneha edit
 
     messages.success(request, f"ID for {name} deleted successfully!")
     return redirect('admin_user_management')
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from accounts.models import Inventory, DailyUsage 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from accounts.models import Inventory, DailyUsage
+
+@login_required
+def admin_inventory(request):
+    if request.method == "POST":
+        # Form se data nikalna
+        name = request.POST.get('item_name')
+        current = request.POST.get('current_stock')
+        required = request.POST.get('required_stock')
+        unit = request.POST.get('unit')
+
+        # Database mein save karna
+        Inventory.objects.create(
+            item_name=name,
+            current_stock=current,
+            required_stock=required,
+            unit=unit
+        )
+        messages.success(request, f"{name} added successfully!")
+        return redirect('admin_inventory')
+
+    # Baki ka purana logic (GET request ke liye)
+    items = Inventory.objects.all()
+    critical_count = sum(1 for i in items if i.current_stock == 0 or (i.required_stock > 0 and i.current_stock <= i.required_stock * 0.2))
+    low_count = sum(1 for i in items if i.required_stock > 0 and i.current_stock <= i.required_stock * 0.5 and not (i.current_stock == 0 or i.current_stock <= i.required_stock * 0.2))
+    
+    recent_usage = DailyUsage.objects.select_related('item').order_by('-date', '-id')[:10]
+
+    context = {
+        'items': items,
+        'low_count': low_count,
+        'critical_count': critical_count,
+        'status': "Attention Needed" if critical_count > 0 else "Healthy",
+        'recent_usage': recent_usage,
+    }
+    return render(request, 'Shree1/admin_inventory.html', context)
+
+
+
+
+# Add New Item Logic (Dynamic Button ke liye)
+@login_required
+def add_inventory_item(request):
+    # Abhi ke liye hum ise Django Admin par redirect kar sakte hain
+    # Ya aap yahan apna custom form handle kar sakte hain
+    return redirect('/admin/accounts/inventory/add/')

@@ -15,6 +15,7 @@
     />
   </head>
   <body>
+    
     <div class="container">
       <aside class="sidebar">
         <div class="logo-section">
@@ -48,6 +49,9 @@
           <a href="{% url 'admin_profile' %}" class="nav-item">
             <i class="fa-regular fa-user"></i> Profile
           </a>
+          <a href="{% url 'worker_report' %}" class="nav-item">
+            <i class="fa-regular fa-user"></i> Worker Report
+          </a>
         </nav>
       </aside>
 
@@ -57,7 +61,7 @@
             <div class="user-profile">
               <div class="user-info">
                 <span class="user-name"
-                  >{{ admin_name|default:"Shree" }}
+                  >SHREE
                   <i class="fa-solid fa-chevron-down text-xs"></i
                 ></span>
                 <span class="user-role">Hostel Admin</span>
@@ -71,12 +75,15 @@
             <h1>Admin Dashboard</h1>
             <p>Overview of system statistics and activities.</p>
           </div>
-          <form action="{% url 'logout' %}" method="post">
-            {% csrf_token %}
-            <button type="submit" class="logout-btn">
-              <i class="fa-solid fa-power-off"></i> Logout
-            </button>
-          </form>
+          <div class="logout-container">
+    <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">
+        {% csrf_token %}
+    </form>
+
+    <a href="javascript:void(0)" class="logout-btn" onclick="logoutUser()">
+         Logout
+    </a>
+</div>
         </div>
 
         <div class="main-stats-grid">
@@ -179,5 +186,20 @@
         </div>
       </main>
     </div>
+    <script type="text/javascript">
+    // 1. Logout function jo form submit karega
+    function logoutUser() {
+        if (confirm("Are you sure you want to logout?")) {
+            document.getElementById('logout-form').submit();
+        }
+    }
+
+    // 2. Anti-Back Logic (Jo aapne pehle lagayi thi, ise rehne dein)
+    window.onpageshow = function(event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    };
+</script>
   </body>
 </html>

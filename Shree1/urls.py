@@ -40,6 +40,10 @@ urlpatterns = [
     
     # Delete User ke liye path (Isme <int:id> dena zaroori hai taaki Django ko pata chale kiska ID delete karna hai)
     path('Shree-admin/delete-id/<int:id>/', views.delete_uni_id, name='delete_uni_id'),
+
+
+    #ayushi
+    path('Shree-admin/inventory/', views.admin_inventory, name='admin_inventory'),
     
 ]
 

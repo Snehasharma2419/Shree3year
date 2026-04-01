@@ -135,6 +135,9 @@ class Attendance(models.Model):
     class Meta:
         unique_together = ('worker_master', 'date') 
 
+from django.db import models
+from django.utils import timezone
+
 class Inventory(models.Model):
     item_id = models.CharField(max_length=20, unique=True) 
     item_name = models.CharField(max_length=100)
@@ -146,18 +149,47 @@ class Inventory(models.Model):
     @property
     def get_status(self):
         """Calculates status based on current vs required stock"""
-        # Agar current stock required stock ke 20% ya usse kam hai
         if self.current_stock <= (self.required_stock * 0.2):
             return "Critical"
-        # Agar current stock required stock ke 50% ya usse kam hai
         elif self.current_stock <= (self.required_stock * 0.5):
             return "Low"
         else:
             return "Good"
 
+    # --- Naya Logic: Auto-track Consumption ---
+    def save(self, *args, **kwargs):
+        if self.pk:  # Agar item pehle se database mein hai (Update ho raha hai)
+            # Database se purani value uthao
+            old_instance = Inventory.objects.get(pk=self.pk)
+            old_stock = old_instance.current_stock
+            
+            # Agar Warden ne stock kam kiya hai, matlab consumption hua hai
+            if old_stock > self.current_stock:
+                consumption = old_stock - self.current_stock
+                # DailyUsage table mein entry create karo
+                # Note: DailyUsage model niche define hona chahiye
+                DailyUsage.objects.create(
+                    item=self,
+                    quantity_used=consumption,
+                    date=timezone.now().date()
+                )
+        
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.item_name} ({self.get_status})"
+
+class DailyUsage(models.Model):
+    item = models.ForeignKey(Inventory, on_delete=models.CASCADE, related_name='usages')
+    quantity_used = models.FloatField()
+    date = models.DateField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.item.item_name} - {self.quantity_used} used on {self.date}"
     
+
+
+
 
 class DeliveryOrder(models.Model):
     item = models.ForeignKey(Inventory, on_delete=models.CASCADE)

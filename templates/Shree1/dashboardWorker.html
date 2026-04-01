@@ -31,21 +31,28 @@
 
         <main class="main-content">
             <header class="top-header">
-                <div class="header-left">
-                    <h1>Worker Dashboard</h1>
-                    <p>Welcome back, <strong>{{ worker.name }}</strong>! View your attendance and notifications.</p>
-                </div>
-                
-                <div class="header-right">
-                    <div class="user-pill">
-                        <span class="u-name">{{ worker.name }}</span>
-                        <span class="u-role">Worker</span>
-                    </div>
-                    <a href="{% url 'welcome_role' %}" class="logout-link">
-                        <i class="fa-solid fa-right-from-bracket"></i> Logout
-                    </a>
-                </div>
-            </header>
+    <div class="header-left">
+        <h1>Worker Dashboard</h1>
+        <p>Welcome back, <strong>{{ worker.name }}</strong>! View your attendance and notifications.</p>
+    </div>
+    
+    <div class="header-right">
+        <div class="user-pill">
+            <span class="u-name">{{ worker.name }}</span>
+            <span class="u-role">Worker</span>
+        </div>
+
+        <div class="logout-container" style="margin-left: 20px">
+            <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">
+                {% csrf_token %}
+            </form>
+            
+            <a href="javascript:void(0)" class="logout-link" onclick="logoutUser()">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </div>
+</header>
 
             <div class="stats-row">
                 <div class="stat-card-small">
@@ -143,5 +150,23 @@
             </div>
         </main>
     </div>
+    <script src="{% static 'Shree1/js/dashboardWorker.js' %}"></script>
+
+<script>
+    // 1. Logout function
+    function logoutUser() {
+        if (confirm("Are you sure you want to logout?")) {
+            // Check karein ki kya ye ID niche form se match kar rahi hai
+            document.getElementById('logout-form').submit();
+        }
+    }
+
+    // 2. Anti-Back Logic
+    window.onpageshow = function(event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    };
+</script>
 </body>
 </html>
