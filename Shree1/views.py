@@ -23,8 +23,10 @@ def role_selection(request):
     return render(request, 'Shree1/signup_role.html')
 
 # --- Dynamic Admin Views ---
+from django.views.decorators.cache import never_cache
 
 @login_required
+@never_cache
 def admin_dashboard(request):
     # Ab hum UniversityID ko count kar rahe hain. 
     # Jaise hi aap naya add/delete karengi, yeh number turant badlega!
@@ -36,8 +38,10 @@ def admin_dashboard(request):
     present_workers = Attendance.objects.filter(date=today, status__iexact='Present').count()
     absent_workers = Attendance.objects.filter(date=today, status__iexact='Absent').count()
     
-    # 3. Latest Notifications
-    recent_notifications = Notification.objects.order_by('-created_at')[:5]
+    # 3. Latest Notifications sneha edit
+    recent_notifications = Notification.objects.filter(
+        recipient=request.user
+    ).order_by('-created_at')[:5]
     
     context = {
         'admin_name': request.user.username if request.user.is_authenticated else 'Admin',
@@ -191,58 +195,56 @@ def admin_inventory(request):
 
 @login_required
 def admin_leave_Management(request):
-    
-    # --- YAHAN SE NAYA LOGIC SHURU (Button clicks handle karne ke liye) ---
     if request.method == "POST":
         leave_id = request.POST.get('leave_id')
-        action = request.POST.get('action') # Yeh HTML se "Approved" ya "Rejected" aayega
+        action = request.POST.get('action') 
 
         if leave_id and action:
-            # 1. Leave Request ko database mein update karo
             leave_req = get_object_or_404(LeaveRequest, id=leave_id)
             leave_req.status = action
             leave_req.save()
 
-            # 2. Dynamic Notification Create karo!
-            # Hum recipient mein 'leave_req.worker.user' pass karenge 
-            # taaki worker ko notification mile.
+            # --- 🔔 DYNAMIC NOTIFICATION LOGIC (FIXED) ---
             
-            if action == 'Approved':
-                Notification.objects.create(
-                    recipient=leave_req.worker.user, # Specific worker ko jayega
-                    message=f"Your leave request from {leave_req.start_date} has been Approved.",
-                    noti_type='leave' # Yellow icon
-                )
+            # Pehle decide karein ki notification kisko bhejna hai (Recipient)
+            if leave_req.is_warden_request:
+                recipient_to_notify = leave_req.warden.user  # Warden user
+                target_display_name = leave_req.warden.name
             else:
+                recipient_to_notify = leave_req.worker.user  # Worker user
+                target_display_name = leave_req.worker.name
+
+            # Notification sirf us user ko jayega jiski leave thi
+            if recipient_to_notify:
+                status_text = "Approved" if action == 'Approved' else "Rejected"
+                noti_style = 'leave' if action == 'Approved' else 'alert'
+                
                 Notification.objects.create(
-                    recipient=leave_req.worker.user, # Specific worker ko jayega
-                    message=f"Your leave request from {leave_req.start_date} has been Rejected.",
-                    noti_type='alert' # Red icon
+                    recipient=recipient_to_notify, # <--- Yahan Admin user nahi jayega
+                    message=f"Your leave request from {leave_req.start_date} has been {status_text}.",
+                    noti_type=noti_style
                 )
 
-            # 3. Success message dikhao aur page refresh karo
-            messages.success(request, f"Leave request for {leave_req.worker.name} {action.lower()} successfully!")
+            # Success message Admin ke liye (Toast message)
+            messages.success(request, f"Leave request for {target_display_name} {action.lower()} successfully!")
             return redirect('admin_leave_Management')
-    # --- YAHAN NAYA LOGIC KHATAM ---
 
-
-    # --- PURANA LOGIC (Data dikhane ke liye) ---
+    # --- Data Fetching for Admin View ---
     pending_requests = LeaveRequest.objects.filter(status='Pending')
-    leave_history = LeaveRequest.objects.exclude(status='Pending').order_by('-created_at') # latest pehle
+    leave_history = LeaveRequest.objects.exclude(status='Pending').order_by('-created_at')
     
     context = {
         'pending': pending_requests,
         'leave_history': leave_history, 
     }
     return render(request, 'Shree1/admin_leave_Management.html', context)
-
 @login_required
 def admin_profile(request):
 
     if 'profile' not in request.session:
         request.session['profile'] = {
             'username': 'Shree',
-            'email': 'slzmdl@gmail.com',
+            'email': '209ayushiagrawal@gmail.com',
             'phone': '9876543210',
         }
 

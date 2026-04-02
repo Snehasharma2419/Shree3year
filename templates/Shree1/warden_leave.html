@@ -236,30 +236,29 @@
               </tr>
             </thead>
             <tbody>
-              {% for req in pending %}
-              <tr>
-                <td>
-                  <strong
-                    >{% if req.is_warden_request %}Self (Warden){% else %}{{
-                    req.worker.name }}{% endif %}</strong
-                  >
-                </td>
-                <td>{{ req.leave_type }}</td>
-                <td>{{ req.start_date|date:"d M, Y" }}</td>
-                <td>{{ req.end_date|date:"d M, Y" }}</td>
-                <td><span class="status-badge pending">Pending</span></td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td
-                  colspan="5"
-                  style="text-align: center; color: #94a3b8; padding: 20px"
-                >
-                  No pending requests.
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
+  {% for req in pending %}
+  <tr>
+    <td>
+      <strong>
+        {% if req.is_warden_request %}
+          Self (Warden)
+        {% else %}
+          {# Worker name fetch karne ka sahi tarika #}
+          {{ req.worker.name|default:req.worker.worker_id }}
+        {% endif %}
+      </strong>
+    </td>
+    <td>{{ req.leave_type }}</td>
+    <td>{{ req.start_date|date:"d M, Y" }}</td>
+    <td>{{ req.end_date|date:"d M, Y" }}</td>
+    <td><span class="status-badge pending">Pending</span></td>
+  </tr>
+  {% empty %}
+  <tr>
+    <td colspan="5" style="text-align: center; color: #94a3b8; padding: 20px">No pending requests.</td>
+  </tr>
+  {% endfor %}
+</tbody>
           </table>
         </div>
 
@@ -274,34 +273,33 @@
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody>
-              {% for h in history %}
-              <tr>
-                <td>
-                  <strong
-                    >{% if h.is_warden_request %}Self (Warden){% else %}{{
-                    h.worker.name }}{% endif %}</strong
-                  >
-                </td>
-                <td>{{ h.leave_type }}</td>
-                <td>
-                  {{ h.start_date|date:"d M" }} - {{ h.end_date|date:"d M, Y" }}
-                </td>
-                <td>
-                  <span
-                    class="status-badge {% if h.status == 'Approved' %}approved{% elif h.status == 'Rejected' %}rejected{% endif %}"
-                    >{{ h.status }}</span
-                  >
-                </td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="4" style="text-align: center; padding: 20px">
-                  No history available.
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
+           <tbody>
+  {% for h in history %}
+  <tr>
+    <td>
+      <strong>
+        {% if h.is_warden_request %}
+          Self (Warden)
+        {% else %}
+          {# h.worker.name fetch karein, fallback ke liye ID #}
+          {{ h.worker.name|default:h.worker.worker_id }}
+        {% endif %}
+      </strong>
+    </td>
+    <td>{{ h.leave_type }}</td>
+    <td>{{ h.start_date|date:"d M" }} - {{ h.end_date|date:"d M, Y" }}</td>
+    <td>
+      <span class="status-badge {% if h.status == 'Approved' %}approved{% elif h.status == 'Rejected' %}rejected{% endif %}">
+        {{ h.status }}
+      </span>
+    </td>
+  </tr>
+  {% empty %}
+  <tr>
+    <td colspan="4" style="text-align: center; padding: 20px">No history available.</td>
+  </tr>
+  {% endfor %}
+</tbody>
           </table>
         </div>
       </main>

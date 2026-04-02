@@ -100,10 +100,21 @@ def worker_signup_view(request):
         record.is_used = True
         record.save()
 
-        # 6. Login the user
+        #6. admin ko noti jaega
+        admin_user = User.objects.filter(role='admin').first() or User.objects.filter(is_superuser=True).first()
+        if admin_user:
+            Notification.objects.create(
+                recipient=admin_user,
+                 message=f"New User Registered: {full_name} ({user_id}) as {new_user.role}.",
+                noti_type='user'
+        )
+
+        # 7. Login the user
         login(request, new_user)
         messages.success(request, f"Welcome {full_name}!")
         return redirect('worker_dashboard')
+        
+        
 
     return render(request, 'Shree1/signupWorker.html')
 
@@ -164,6 +175,17 @@ def warden_signup_view(request):
         # 6. Mark ID as used
         record.is_used = True
         record.save()
+
+          #admin ko noti jaega aignup k tym
+            # Signup success hone ke baad aur is_used = True karne ke baad:
+        admin_user = User.objects.filter(Q(role='admin') | Q(is_superuser=True)).first()
+        
+        if admin_user:
+            Notification.objects.create(
+                recipient=admin_user,
+                message=f"New User Registered: {full_name} ({u_id}) as Warden.",
+                noti_type='user'
+            )
 
         # 7. Login and Redirect
         login(request, new_user)
@@ -472,7 +494,7 @@ def supplier_profile(request):
     context = {
         "display_name": "Kutir Supplies",
         "display_role": "Official Hostel Supplier",
-        "email": request.user.email or "kutir@example.com",
+        "email":"kutir@gmail.com",
         "phone": "9876543210", # Static ya DB se
         "address": "Main Market, University Area"
     }
@@ -612,6 +634,17 @@ def warden_leave_view(request):
                 reason=reason,
                 status='Pending'
             )
+            #admin ko noti
+            admin_user = User.objects.filter(is_superuser=True).first()
+            
+            if admin_user:
+                Notification.objects.create(
+                    recipient=admin_user,
+                    message=f"Warden {current_warden.name} has applied for Self Leave.",
+                    noti_type='leave'
+                ) # Ek hi bracket yahan band hoga
+            
+            # Ye line 'if admin_user' ke bahar honi chahiye
             messages.success(request, "Your leave request (Warden) created.")
         else:
             w_id = request.POST.get('worker_id')
@@ -632,7 +665,22 @@ def warden_leave_view(request):
                     reason=reason,
                     status='Pending'
                 )
+                #admin ko noti jaega 
+               # --- 🔔 2. ADMIN NOTIFICATION LOGIC ---
+                # Pehle Admin ko fetch karein
+                from django.db.models import Q
+                admin_user = User.objects.filter(Q(role='admin') | Q(is_superuser=True)).first()
+
+                if admin_user:
+                    Notification.objects.create(
+                        recipient=admin_user,
+                        message=f"Warden {current_warden.name} requested leave for Worker {worker_obj.name}.",
+                        noti_type='leave'
+                    )
+
+                # Success message (if admin_user ke bahar, try block ke andar)
                 messages.success(request, f"Leave request for {worker_obj.name} submitted.")
+
             except Worker.DoesNotExist:
                 messages.error(request, f"Worker profile with ID {w_id} not found.")
 
@@ -910,6 +958,14 @@ def supplier_confirm_delivery(request):
             messages.success(request, "AI Verification Successful: Inventory Synced.")
         else:
             messages.error(request, "Security Alert: Invalid OTP Attempt.")
+        
+        # OTP match hone aur inventory.save() hone ke baad:
+        admin_user = User.objects.filter(is_superuser=True).first()
+        Notification.objects.create(
+            recipient=admin_user,
+            message=f"Delivery Received: {order.qty_delivered} {inventory_item.unit} of {inventory_item.item_name} added to stock.",
+            noti_type='inventory' # Green icon for stock update
+            )
             
     return redirect('supplier_dashboard')
 
@@ -1038,6 +1094,16 @@ def download_worker_report(request):
     # Build PDF
     doc.build(elements)
 
+    admin_user = User.objects.filter(Q(role='admin') | Q(is_superuser=True)).first()
+
+    # Agar hum chahte hain ki sirf ADMIN ko dikhe:
+    if admin_user:
+        Notification.objects.create(
+            recipient=admin_user, # <--- Ab hamesha Admin hi recipient hoga
+            message=f"Attendance Report was generated and downloaded on {date.today()}.",
+            noti_type='report'
+        )
+    
     return response
 
 def forget_password(request):

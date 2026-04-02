@@ -57,3 +57,6 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initial calculation on page load
   updateSummary();
 });
+const status = worker.attendance_status; 
+const presentBtnClass = (status === 'Present') ? 'btn-active' : 'btn-outline';
+const absentBtnClass = (status === 'Absent') ? 'btn-active' : 'btn-outline';

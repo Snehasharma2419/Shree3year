@@ -66,8 +66,7 @@
           </div>
           <div class="header-right">
             <div class="admin-info">
-              <span>aa</span>
-              <p>Admin</p>
+              
             </div>
             <button type="submit" form="attendanceForm" class="save-btn">
               <i class="fa-solid fa-floppy-disk"></i> Save Attendance
@@ -124,13 +123,7 @@
                         name="status_{{ worker.worker_id }}"
                         value="Present"
                         id="p_{{ worker.worker_id }}"
-                        {%
-                        if
-                        worker.status|lower=""
-                        ="present"
-                        %}checked{%
-                        endif
-                        %}
+                        {% if worker.status|lower == "present" %}checked{% endif %}
                       />
                       <label for="p_{{ worker.worker_id }}" class="lbl-present"
                         >Present</label
@@ -141,13 +134,7 @@
                         name="status_{{ worker.worker_id }}"
                         value="Absent"
                         id="a_{{ worker.worker_id }}"
-                        {%
-                        if
-                        worker.status|lower=""
-                        ="absent"
-                        %}checked{%
-                        endif
-                        %}
+                        {% if worker.status|lower == "absent" %}checked{% endif %}
                       />
                       <label for="a_{{ worker.worker_id }}" class="lbl-absent"
                         >Absent</label

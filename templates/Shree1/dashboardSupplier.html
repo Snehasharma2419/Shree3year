@@ -59,13 +59,34 @@
         display: inline-block;
         margin-top: 4px;
       }
+      /* Purane .logo-icon ko thoda update karein */
+     /* Green box ki styling (Jahan 'S' tha) */
+      .logo-icon {
+        width: 45px;          /* Box ka size thoda badha sakte hain */
+        height: 45px;
+        background-color: #ffffff; 
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;     /* Taki image bahar na nikle */
+        padding: 2px;         /* Taki image border se thoda gap rakhe */
+      }
+
+/* Image ki styling jo aapne box ke andar dali hai */
+      .logo-icon img {
+        width: 100%;          /* Box ki puri width cover kare */
+        height: 100%;         /* Box ki puri height cover kare */
+        object-fit: contain;  /* 👈 Sabse important: Puri image dikhayega bina kate */
+        display: block;
+       }
     </style>
   </head>
   <body>
     <div class="container">
       <aside class="sidebar">
         <div class="logo-section">
-          <div class="logo-icon">S</div>
+          <div class="logo-icon"><img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="Logo" /></div>
           <div>
             <h2 class="logo-name">SHREE</h2>
             <p class="logo-tagline">Smart Hostel Record</p>
@@ -206,9 +227,7 @@
                   <td class="id-cell">#{{ item.item_id }}</td>
                   <td>
                     <strong>{{ item.item_name }}</strong><br />
-                    <span class="ai-remark-badge"
-                      ><i class="fa-solid fa-robot"></i> AI Recommended</span
-                    >
+                    
                   </td>
                   <td class="qty-text red-text">
                     {{ item.deficit }} {{ item.unit }}

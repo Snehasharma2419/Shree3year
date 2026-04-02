@@ -80,7 +80,7 @@
             <table class="leave-table">
               <thead>
                 <tr>
-                  <th>Worker</th>
+                  <th>Employee</th>
                   <th>Leave Type</th>
                   <th>Start Date</th>
                   <th>End Date</th>
@@ -93,8 +93,12 @@
                 {% for req in pending %}
                 <tr>
                   <td class="primary-cell">
-                    {{ req.worker.name }} ({{ req.worker.worker_id }})
-                  </td>
+    {% if req.is_warden_request %}
+        <strong>Self (Warden):</strong> {{ req.warden.name }}
+    {% else %}
+        {{ req.worker.name }} ({{ req.worker.worker_id }})
+    {% endif %}
+</td>
                   <td class="muted-cell">{{ req.leave_type }}</td>
                   <td class="muted-cell">
                     {{ req.start_date|date:"M. d, Y" }}
@@ -156,7 +160,7 @@
             <table class="leave-table">
               <thead>
                 <tr>
-                  <th>Worker</th>
+                  <th>Employee</th>
                   <th>Leave Type</th>
                   <th>Start Date</th>
                   <th>End Date</th>
@@ -168,8 +172,12 @@
                 {% for req in leave_history %}
                 <tr>
                   <td class="primary-cell">
-                    {{ req.worker.name }} ({{ req.worker.worker_id }})
-                  </td>
+    {% if req.is_warden_request %}
+        <strong>Self (Warden):</strong> {{ req.warden.name }}
+    {% else %}
+        {{ req.worker.name }} ({{ req.worker.worker_id }})
+    {% endif %}
+</td>
                   <td class="muted-cell">{{ req.leave_type }}</td>
                   <td class="muted-cell">
                     {{ req.start_date|date:"M. d, Y" }}

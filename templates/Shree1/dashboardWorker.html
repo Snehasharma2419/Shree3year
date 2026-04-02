@@ -5,6 +5,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHREE - Worker Dashboard</title>
+
+    <style>
+       .logo-icon {
+    width: 55px;          /* Size aap apne hisaab se rakh sakte hain */
+    height: 55px;
+    background-color: #2563eb; /* Image ke blue color se match karein */
+    border-radius: 12px;      /* Rounded corners */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;         /* Taki image corners se bahar na nikle */
+    padding: 0 !important;    /* 👈 Sabse important: Padding 0 karein */
+}
+
+.logo-icon img {
+    width: 100%;              /* Box ki poori width */
+    height: 100%;             /* Box ki poori height */
+    
+    /* 👈 'contain' ki jagah 'cover' use karein. 
+       Ye image ko zoom karke poore box mein fit kar dega */
+    object-fit: cover;        
+    
+    display: block;
+}
+    </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'Shree1/css/dashboardWorker.css' %}">
 </head>
@@ -12,7 +37,7 @@
     <div class="container">
         <aside class="sidebar">
             <div class="logo-section">
-                <div class="logo-icon">S</div>
+                <div class="logo-icon"><img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="Logo" /></div>
                 <div class="logo-text">
                     <h2 class="logo-name">SHREE</h2>
                     <p class="logo-tagline">Smart Hostel Record & <br>Employee Evaluation</p>

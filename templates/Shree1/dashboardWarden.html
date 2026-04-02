@@ -5,6 +5,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SHREE - Warden Dashboard</title>
+    <style> .logo-icon {
+        width: 45px;          /* Box ka size thoda badha sakte hain */
+        height: 45px;
+        background-color: #ffffff; 
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;     /* Taki image bahar na nikle */
+        padding: 2px;         /* Taki image border se thoda gap rakhe */
+      }
+
+/* Image ki styling jo aapne box ke andar dali hai */
+      .logo-icon img {
+        width: 100%;          /* Box ki puri width cover kare */
+        height: 100%;         /* Box ki puri height cover kare */
+        object-fit: contain;  /* 👈 Sabse important: Puri image dikhayega bina kate */
+        display: block;
+       }
+    </style></style>
     <link
       rel="stylesheet"
       href="{% static 'Shree1/css/dashboardWarden.css' %}"
@@ -18,7 +38,7 @@
     <div class="container">
       <aside class="sidebar">
         <div class="logo-section">
-          <div class="logo-icon">S</div>
+          <div class="logo-icon"><img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="Logo" /></div>
           <div>
             <h2 class="logo-name">SHREE</h2>
             <p class="logo-tagline">Smart Hostel System</p>
