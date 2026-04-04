@@ -102,22 +102,31 @@ class Warden(models.Model):
 
 class Worker(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    university_record = models.OneToOneField(UniversityID, on_delete=models.CASCADE, null=True, limit_choices_to={'role': 'worker'})
-    worker_id = models.CharField(max_length=20, unique=True)
+    university_record = models.OneToOneField(UniversityID, on_delete=models.CASCADE, null=True, blank=True, limit_choices_to={'role': 'worker'})
+    worker_id = models.CharField(max_length=20, unique=True, blank=True) # blank=True zaroori hai
     name = models.CharField(max_length=100)
     email = models.EmailField(blank=True, null=True)
-    phone_number = models.CharField(max_length=10, blank=True, null=True)
-    # The Admin field stays nullable so they can signup themselves
+    phone_number = models.CharField(max_length=10, validators=[phone_validator], blank=True, null=True)
     admin_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='managed_workers')
-    
-    # Logic improvements
     is_approved = models.BooleanField(default=False)
     leave_balance = models.IntegerField(default=15)
     
+    def save(self, *args, **kwargs):
+        # 🟢 AUTO-FETCH: User table se data match karke fill karna
+        if self.user and not self.university_record:
+            try:
+                record = UniversityID.objects.get(university_id=self.user.university_id, role='worker')
+                self.university_record = record
+                self.worker_id = record.university_id
+                self.name = record.full_name
+                record.is_used = True # ID ko used mark karna
+                record.save()
+            except UniversityID.DoesNotExist:
+                pass
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.name} ({self.worker_id})"
-
-
 
 # -------------------------
 # OPERATIONAL TABLES
@@ -237,4 +246,3 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.recipient.username if self.recipient else 'All'}: {self.message}"
-    

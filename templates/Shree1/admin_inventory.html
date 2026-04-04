@@ -8,13 +8,44 @@
     <link rel="stylesheet" href="{% static 'Shree1/css/dashboardAdmin.css' %}" />
     <link rel="stylesheet" href="{% static 'Shree1/css/admin_inventory.css' %}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+      /* Delete Button Styling */
+      .delete-btn {
+        color: #ef4444;
+        background: #fee2e2;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .delete-btn:hover {
+        background: #fecaca;
+        transform: scale(1.1);
+      }
+      .id-badge {
+        background: #f1f5f9;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-family: monospace;
+        font-weight: 600;
+        color: #475569;
+      }
+    </style>
   </head>
   <body>
     <div class="container">
       <aside class="sidebar">
         <div class="logo-section">
-          <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="Logo" class="nav-logo-file" />
-          <h2 class="logo-name">SHREE</h2>
+          <div class="logo-icon" style="width:45px; height:45px; background:#fff; border-radius:10px; overflow:hidden;">
+            <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="Logo" style="width:100%; height:100%; object-fit:cover;" />
+          </div>
+          <div class="logo-text">
+            <h2 class="logo-name">SHREE</h2>
+            <p class="logo-tagline">Smart Hostel Record</p>
+          </div>
         </div>
         <nav class="nav-menu">
           <a href="{% url 'admin_dashboard' %}" class="nav-item"><i class="fa-solid fa-table-cells-large"></i> Dashboard</a>
@@ -23,7 +54,7 @@
           <a href="{% url 'admin_inventory' %}" class="nav-item active"><i class="fa-solid fa-box-open"></i> Inventory</a>
           <a href="{% url 'admin_leave_Management' %}" class="nav-item"><i class="fa-solid fa-file-contract"></i> Leave Management</a>
           <a href="{% url 'admin_profile' %}" class="nav-item"><i class="fa-regular fa-user"></i> Profile</a>
-          <a href="{% url 'worker_report' %}" class="nav-item"><i class="fa-regular fa-chart-bar"></i> Report</a>
+          <a href="{% url 'worker_report' %}" class="nav-item"><i class="fa-regular fa-chart-bar"></i> Worker Report</a>
         </nav>
       </aside>
 
@@ -34,6 +65,14 @@
             <i class="fa-solid fa-plus"></i> Add New Item
           </button>
         </header>
+
+        {% if messages %}
+          {% for message in messages %}
+            <div style="padding: 15px; margin-bottom: 20px; border-radius: 8px; background: {% if message.tags == 'success' %}#dcfce7; color: #166534;{% else %}#fee2e2; color: #991b1b;{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
 
         <section class="inventory-stats">
           <div class="stat-card"><span>Total Items</span><h2>{{ items|length }}</h2></div>
@@ -46,24 +85,41 @@
           <h3>Current Stock Levels</h3>
           <table class="inventory-table">
             <thead>
-              <tr><th>Item ID</th><th>Item Name</th><th>Stock Level</th><th>Status</th></tr>
+              <tr>
+                <th>Item ID</th> 
+                <th>Item Name</th>
+                <th>Stock Level</th>
+                <th>Status</th>
+                <th style="text-align: center;">Actions</th> </tr>
             </thead>
             <tbody>
               {% for item in items %}
               <tr>
-                <td><span class="id-badge">#{{ forloop.counter }}</span></td>
+                <td><span class="id-badge">#{{ item.item_id }}</span></td>
                 <td class="font-bold"><i class="fa-solid fa-box item-icon"></i> {{ item.item_name }}</td>
-                <td><span class="{% if item.get_status == 'Critical' %}text-red{% elif item.get_status == 'Low' %}text-orange{% else %}text-green{% endif %}">{{ item.current_stock }}</span> <span class="unit-label">{{ item.unit }}</span></td>
+                <td>
+                    <span class="{% if item.get_status == 'Critical' %}text-red{% elif item.get_status == 'Low' %}text-orange{% else %}text-green{% endif %}">
+                        {{ item.current_stock }}
+                    </span> 
+                    <span class="unit-label">{{ item.unit }}</span>
+                </td>
                 <td><span class="status-badge {{ item.get_status|lower }}">{{ item.get_status }}</span></td>
+                <td style="text-align: center;">
+                  <a href="{% url 'delete_inventory_item' item.item_id %}" 
+                     class="delete-btn" 
+                     onclick="return confirm('Are you sure you want to delete {{ item.item_name }}?');">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </a>
+                </td>
               </tr>
               {% empty %}
-              <tr><td colspan="4" class="empty-msg">No items found in database.</td></tr>
+              <tr><td colspan="5" class="empty-msg">No items found in database.</td></tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
 
-        <header class="page-header-row" style="margin-top: 40px;"><h1>Recent Consumption (Daily Usage)</h1></header>
+        <header class="page-header-row" style="margin-top: 40px;"><h1>Recent Consumption</h1></header>
         <div class="content-card">
             <table class="inventory-table">
                 <thead><tr><th>Date</th><th>Item Name</th><th>Quantity Used</th></tr></thead>
@@ -74,8 +130,6 @@
                         <td class="font-bold">{{ usage.item.item_name }}</td>
                         <td><span class="text-red">- {{ usage.quantity_used }}</span> <span class="unit-label">{{ usage.item.unit }}</span></td>
                     </tr>
-                    {% empty %}
-                    <tr><td colspan="3" class="empty-msg">No usage history recorded.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -87,41 +141,63 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2>Add New Inventory Item</h2>
-          <span class="close-modal">&times;</span>
+          <span class="close-modal" id="closeX">&times;</span>
         </div>
         <form method="POST" action="{% url 'admin_inventory' %}">
           {% csrf_token %}
-          <div class="form-group">
+          
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label>Item ID (Auto-generated)</label>
+            <input type="text" name="item_id" value="{{ next_id }}" readonly style="background-color: #f8fafc; width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; color: #64748b;">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 15px;">
             <label>Item Name</label>
-            <input type="text" name="item_name" required placeholder="e.g. Rice">
+            <input type="text" name="item_name" required placeholder="e.g. Soyabean" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
           </div>
-          <div class="form-row">
-            <div class="form-group">
+
+          <div class="form-row" style="display:flex; gap:15px; margin-bottom: 15px;">
+            <div class="form-group" style="flex:1;">
               <label>Current Stock</label>
-              <input type="number" step="0.1" name="current_stock" required>
+              <input type="number" step="0.1" name="current_stock" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="flex:1;">
               <label>Min. Required</label>
-              <input type="number" step="0.1" name="required_stock" required>
+              <input type="number" step="0.1" name="required_stock" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
             </div>
           </div>
-          <div class="form-group">
+
+          <div class="form-group" style="margin-bottom: 20px;">
             <label>Unit</label>
-            <select name="unit">
+            <select name="unit" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
               <option value="kg">kg</option>
               <option value="lit">lit</option>
               <option value="pcs">pcs</option>
               <option value="pkt">pkt</option>
             </select>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn-cancel">Cancel</button>
-            <button type="submit" class="btn-submit">Save Item</button>
+
+          <div class="modal-footer" style="display:flex; justify-content: flex-end; gap:10px;">
+            <button type="button" class="btn-cancel" id="cancelBtn" style="padding:10px 20px; border-radius:8px; border:none; cursor:pointer;">Cancel</button>
+            <button type="submit" class="btn-submit" style="padding:10px 20px; border-radius:8px; border:none; background:#2563eb; color:white; cursor:pointer;">Save Item</button>
           </div>
         </form>
       </div>
     </div>
 
-    <script src="{% static 'Shree1/js/admin_inventory.js' %}"></script>
+    <script>
+        const modal = document.getElementById("addItemModal");
+        const btn = document.getElementById("openModalBtn");
+        const closeX = document.getElementById("closeX");
+        const cancelBtn = document.getElementById("cancelBtn");
+
+        btn.onclick = () => modal.style.display = "block";
+        closeX.onclick = () => modal.style.display = "none";
+        cancelBtn.onclick = () => modal.style.display = "none";
+        
+        window.onclick = (event) => {
+            if (event.target == modal) modal.style.display = "none";
+        }
+    </script>
   </body>
 </html>

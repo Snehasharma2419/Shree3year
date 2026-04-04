@@ -45,5 +45,7 @@ urlpatterns = [
     #ayushi
     path('Shree-admin/inventory/', views.admin_inventory, name='admin_inventory'),
     
+    # Shree1/urls.py mein add karein
+    path('inventory/delete/<str:item_id>/', views.delete_inventory_item, name='delete_inventory_item'),
 ]
 

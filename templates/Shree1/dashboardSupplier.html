@@ -120,7 +120,7 @@
 
         <section class="dashboard-intro">
           <h1>Kutir Dashboard</h1>
-          <p>AI-Powered Inventory Sync Active</p>
+          
         </section>
 
         {% if messages %}
@@ -302,7 +302,7 @@
                 <th>Order ID</th>
                 <th>Item Name</th>
                 <th>Qty. in Transit</th>
-                <th>AI Status</th>
+                
                 <th>Current State</th>
               </tr>
             </thead>
@@ -314,11 +314,7 @@
                 <td class="qty-text">
                   {{ order.qty_delivered }} {{ order.item.unit }}
                 </td>
-                <td>
-                  <span class="ai-remark-badge">
-                    {{ order.ai_remark|default:"Normal Supply" }}
-                  </span>
-                </td>
+                
                 <td>
                   <span
                     class="status-badge"

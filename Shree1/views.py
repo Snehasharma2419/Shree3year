@@ -8,7 +8,7 @@ from django.utils import timezone
 from datetime import datetime 
 from django.urls import reverse 
 from accounts.models import User, UniversityID, Worker, Warden, Supplier, Attendance, Inventory, LeaveRequest , Notification
-
+import re
 
 
 
@@ -333,8 +333,18 @@ def admin_inventory(request):
         required = request.POST.get('required_stock')
         unit = request.POST.get('unit')
 
+
+        last_item = Inventory.objects.all().order_by('id').last()
+        next_id = "I101" # Default agar DB khali hai
+        if last_item and last_item.item_id:
+            nums = re.findall(r'\d+', last_item.item_id)
+            if nums:
+                next_id = f"I{int(nums[-1]) + 1}"
+
+
         # Database mein save karna
         Inventory.objects.create(
+            item_id=next_id,
             item_name=name,
             current_stock=current,
             required_stock=required,
@@ -367,4 +377,15 @@ def admin_inventory(request):
 def add_inventory_item(request):
     # Abhi ke liye hum ise Django Admin par redirect kar sakte hain
     # Ya aap yahan apna custom form handle kar sakte hain
-    return redirect('/admin/accounts/inventory/add/')
+    return redirect('/admin/accounts/inventory/add/')\
+    
+
+
+# Shree1/views.py mein add karein
+@login_required
+def delete_inventory_item(request, item_id):
+    item = get_object_or_404(Inventory, item_id=item_id)
+    item_name = item.item_name
+    item.delete()
+    messages.warning(request, f"Item '{item_name}' has been deleted.")
+    return redirect('admin_inventory')

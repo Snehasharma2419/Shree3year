@@ -955,7 +955,7 @@ def supplier_confirm_delivery(request):
                 order.status = 'DELIVERED'
                 order.save()
 
-            messages.success(request, "AI Verification Successful: Inventory Synced.")
+            messages.success(request, "Verification Successful: Inventory Synced.")
         else:
             messages.error(request, "Security Alert: Invalid OTP Attempt.")
         
@@ -1030,6 +1030,11 @@ def worker_report(request):
     for worker in workers:
         uid = worker.university_record
         attendance = Attendance.objects.filter(worker_master=uid)
+        if uid:
+            print(f"DEBUG: Worker {worker.name} (UniversityID PK: {uid.id})")
+            print(f"Attendance in DB Count: {Attendance.objects.filter(worker_master_id=uid.id).count()}")
+        else:
+            print(f"DEBUG: Worker {worker.name} has NO University Record!")
 
         report_data.append({
             'worker': worker,
@@ -1042,6 +1047,7 @@ def worker_report(request):
         'report_data': report_data
     })
     
+
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
