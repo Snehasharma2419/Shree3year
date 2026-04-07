@@ -21,19 +21,44 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
+    <style>
+      .page-messages {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      .page-message {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        font-weight: 600;
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+      }
+      .page-message.error {
+        background: linear-gradient(180deg, #fff5f5 0%, #fee2e2 100%);
+        color: #991b1b;
+        border: 1px solid #fecaca;
+      }
+      .page-message.success {
+        background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%);
+        color: #166534;
+        border: 1px solid #bbf7d0;
+      }
+      .page-message i {
+        margin-top: 2px;
+      }
+    </style>
   </head>
   <body>
     <div class="admin-page-container">
       <aside class="sidebar">
         <div class="logo-area">
-          <img
-            src="{% static 'Shree1/images/logo_img.jpeg' %}"
-            alt="SHREE Logo"
-            class="nav-logo-file"
-          />
-          <div class="logo-text">
-            <h2 class="brand-name">SHREE</h2>
-            <p class="brand-subtext">Smart Hostel Record</p>
+          <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="SHREE Logo" class="nav-logo-file" style="width: 48px; height: 48px; border-radius: 10px; object-fit: contain;" />
+          <div>
+            <h2 class="logo-name">SHREE</h2>
+            <p style="font-size: 10px; color: #94a3b8">Smart Hostel Record & Employee Evaluation</p>
           </div>
         </div>
 
@@ -63,6 +88,16 @@
       </aside>
 
       <main class="main-body">
+        {% if messages %}
+        <div class="page-messages">
+          {% for message in messages %}
+          <div class="page-message {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+            <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+            <span>{{ message }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
         <header class="main-header">
           <div class="header-left">
             <h1>User Management</h1>

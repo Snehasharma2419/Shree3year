@@ -59,6 +59,40 @@
         display: inline-block;
         margin-top: 4px;
       }
+      .supplier-status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 92px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        border: 1px solid transparent;
+      }
+      .supplier-status-badge.critical {
+        background: #fef2f2;
+        color: #b91c1c;
+        border-color: #fecaca;
+      }
+      .supplier-status-badge.low {
+        background: #fff7ed;
+        color: #c2410c;
+        border-color: #fed7aa;
+      }
+      .supplier-status-badge.good {
+        background: #f0fdf4;
+        color: #15803d;
+        border-color: #bbf7d0;
+      }
+      .supplier-status-badge.critical {
+        animation: supplierCriticalBlink 1s infinite;
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.25);
+      }
+      @keyframes supplierCriticalBlink {
+        0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.18); }
+        50% { opacity: 0.5; transform: scale(1.05); box-shadow: 0 0 0 8px rgba(220, 38, 38, 0.05); }
+      }
       /* Purane .logo-icon ko thoda update karein */
      /* Green box ki styling (Jahan 'S' tha) */
       .logo-icon {
@@ -80,16 +114,207 @@
         object-fit: contain;  /* 👈 Sabse important: Puri image dikhayega bina kate */
         display: block;
        }
+      .critical-popup-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        background: rgba(15, 23, 42, 0.72);
+        backdrop-filter: blur(10px);
+        z-index: 9999;
+      }
+      .critical-popup {
+        width: min(680px, 100%);
+        border-radius: 30px;
+        overflow: hidden;
+        background: linear-gradient(180deg, #fffaf2 0%, #ffffff 100%);
+        border: 1px solid rgba(249, 115, 22, 0.18);
+        box-shadow: 0 36px 90px rgba(15, 23, 42, 0.32);
+        animation: popupEnter 0.3s ease-out;
+      }
+      .critical-popup-header {
+        position: relative;
+        padding: 30px 30px 24px;
+        background: radial-gradient(circle at top left, #fb923c 0%, #f97316 40%, #c2410c 100%);
+        color: #fff7ed;
+      }
+      .critical-popup-icon {
+        width: 62px;
+        height: 62px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        margin-bottom: 18px;
+        font-size: 1.45rem;
+      }
+      .critical-popup-header h3 {
+        margin: 0;
+        font-size: 1.85rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+      }
+      .critical-popup-header p {
+        margin: 10px 0 0;
+        max-width: 500px;
+        color: rgba(255, 247, 237, 0.92);
+        line-height: 1.7;
+        font-size: 1rem;
+      }
+      .critical-popup-close {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        width: 42px;
+        height: 42px;
+        border: none;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.16);
+        color: #fff7ed;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+      .critical-popup-close:hover {
+        background: rgba(255, 255, 255, 0.26);
+        transform: rotate(90deg);
+      }
+      .critical-popup-body {
+        padding: 26px 30px 30px;
+      }
+      .critical-popup-note {
+        margin: 0 0 20px;
+        color: #9a3412;
+        font-size: 0.98rem;
+        font-weight: 600;
+      }
+      .critical-popup-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 14px;
+      }
+      .critical-popup-list li {
+        position: relative;
+        padding: 18px;
+        border-radius: 20px;
+        background: #ffffff;
+        border: 1px solid #fed7aa;
+        box-shadow: 0 14px 32px rgba(249, 115, 22, 0.09);
+      }
+      .critical-popup-list li::before {
+        content: '';
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 6px;
+        border-radius: 20px 0 0 20px;
+        background: linear-gradient(180deg, #fb923c, #ea580c);
+      }
+      .critical-popup-item-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .critical-popup-item-title strong {
+        color: #7c2d12;
+        font-size: 1.05rem;
+      }
+      .critical-popup-item-id {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #fff7ed;
+        color: #c2410c;
+        border: 1px solid #fdba74;
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+      .critical-popup-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .critical-popup-metric {
+        padding: 14px;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
+      }
+      .critical-popup-metric span {
+        display: block;
+        margin-bottom: 6px;
+        color: #9a3412;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.76rem;
+        font-weight: 700;
+      }
+      .critical-popup-metric strong {
+        color: #431407;
+        font-size: 1rem;
+      }
+      .critical-popup-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 22px;
+      }
+      .critical-popup-btn {
+        border: none;
+        border-radius: 999px;
+        padding: 13px 22px;
+        background: linear-gradient(135deg, #f97316, #ea580c);
+        color: white;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        box-shadow: 0 16px 28px rgba(234, 88, 12, 0.24);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+      }
+      .critical-popup-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 18px 32px rgba(234, 88, 12, 0.3);
+      }
+      @keyframes popupEnter {
+        from { opacity: 0; transform: translateY(20px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @media (max-width: 640px) {
+        .critical-popup-overlay {
+          padding: 16px;
+        }
+        .critical-popup {
+          border-radius: 24px;
+        }
+        .critical-popup-header,
+        .critical-popup-body {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+        .critical-popup-header h3 {
+          font-size: 1.45rem;
+        }
+        .critical-popup-metrics {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <aside class="sidebar">
         <div class="logo-section">
-          <div class="logo-icon"><img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="Logo" /></div>
+          <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="SHREE Logo" class="nav-logo-file" style="width: 48px; height: 48px; border-radius: 10px; object-fit: contain;" />
           <div>
             <h2 class="logo-name">SHREE</h2>
-            <p class="logo-tagline">Smart Hostel Record</p>
+            <p style="font-size: 10px; color: #94a3b8">Smart Hostel Record & Employee Evaluation</p>
           </div>
         </div>
         <nav class="nav-menu">
@@ -143,6 +368,46 @@
             <i class="fa-solid fa-circle-check"></i> {{ message }}
           </div>
           {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if critical_items %}
+        <div class="critical-popup-overlay" id="criticalStockPopup">
+          <div class="critical-popup" role="dialog" aria-modal="true" aria-labelledby="criticalPopupTitle">
+            <div class="critical-popup-header">
+              <div class="critical-popup-icon">
+                <i class="fa-solid fa-bell"></i>
+              </div>
+              <h3 id="criticalPopupTitle">Urgent Critical Stock Alert</h3>
+              <p>Some inventory items have dropped to a critical level and should be dispatched as a priority.</p>
+              <button type="button" class="critical-popup-close" onclick="closeCriticalPopup()" aria-label="Close alert">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div class="critical-popup-body">
+              <p class="critical-popup-note">Please review the affected items below and schedule the next dispatch as soon as possible.</p>
+              <ul class="critical-popup-list">
+                {% for item in critical_items %}
+                <li>
+                  <div class="critical-popup-item-title">
+                    <strong>{{ item.item_name }}</strong>
+                    <span class="critical-popup-item-id">#{{ item.item_id }}</span>
+                  </div>
+                  <div class="critical-popup-metrics">
+                    <div class="critical-popup-metric">
+                      <span>Current Stock</span>
+                      <strong>{{ item.current_stock }} {{ item.unit }}</strong>
+                    </div>
+                    <div class="critical-popup-metric">
+                      <span>Required Stock</span>
+                      <strong>{{ item.required_stock }} {{ item.unit }}</strong>
+                    </div>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
         </div>
         {% endif %}
 
@@ -209,6 +474,7 @@
                   </th>
                   <th>Item ID</th>
                   <th>Item Name</th>
+                  <th>Status</th>
                   <th>Deficit / Gap</th>
                   <th>Dispatch Quantity</th>
                 </tr>
@@ -227,7 +493,9 @@
                   <td class="id-cell">#{{ item.item_id }}</td>
                   <td>
                     <strong>{{ item.item_name }}</strong><br />
-                    
+                  </td>
+                  <td>
+                    <span class="supplier-status-badge {{ item.get_status|lower }}">{{ item.get_status }}</span>
                   </td>
                   <td class="qty-text red-text">
                     {{ item.deficit }} {{ item.unit }}
@@ -249,7 +517,7 @@
                 {% empty %}
                 <tr>
                   <td
-                    colspan="5"
+                    colspan="6"
                     style="text-align: center; padding: 40px; color: #64748b"
                   >
                     <i
@@ -344,22 +612,92 @@
       </main>
     </div>
 
-    <script src="{% static 'Shree1/js/dashboardSupplier.js' %}">
-      
-        // 1. Logout karne ke liye confirm aur form submit
-        function logoutUser() {
-            if (confirm("Are you sure you want to logout?")) {
-                document.getElementById('logout-form').submit();
-            }
+    <script src="{% static 'Shree1/js/dashboardSupplier.js' %}"></script>
+    <script>
+      function logoutUser() {
+        if (confirm("Are you sure you want to logout?")) {
+          document.getElementById('logout-form').submit();
+        }
+      }
+
+      window.onpageshow = function(event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+          window.location.reload();
+        }
+      };
+
+      let criticalSoundPlayed = false;
+
+      function playAlertTone(pattern) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) {
+          return;
         }
 
-        // 2. Back button dabane par page reload karne ke liye
-        window.onpageshow = function(event) {
-            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
-                window.location.reload();
-            }
-        };
-    
+        const audioContext = new AudioCtx();
+        const gainNode = audioContext.createGain();
+        gainNode.connect(audioContext.destination);
+
+        const startAt = audioContext.currentTime + 0.02;
+        gainNode.gain.setValueAtTime(0.001, startAt);
+        gainNode.gain.exponentialRampToValueAtTime(0.14, startAt + 0.03);
+
+        pattern.forEach(function(note) {
+          const oscillator = audioContext.createOscillator();
+          oscillator.type = note.type || 'triangle';
+          oscillator.frequency.setValueAtTime(note.frequency, startAt + note.start);
+          oscillator.connect(gainNode);
+          oscillator.start(startAt + note.start);
+          oscillator.stop(startAt + note.end);
+        });
+
+        const totalDuration = pattern[pattern.length - 1].end;
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startAt + totalDuration + 0.05);
+
+        setTimeout(function() {
+          audioContext.close();
+        }, Math.ceil((totalDuration + 0.15) * 1000));
+      }
+
+      function playCriticalAlertSound() {
+        if (criticalSoundPlayed) {
+          return;
+        }
+
+        playAlertTone([
+          { frequency: 932, start: 0.00, end: 0.15, type: 'sawtooth' },
+          { frequency: 698, start: 0.19, end: 0.34, type: 'sawtooth' },
+          { frequency: 932, start: 0.38, end: 0.58, type: 'triangle' }
+        ]);
+        criticalSoundPlayed = true;
+      }
+
+      function tryPlayCriticalAlertSound() {
+        const popup = document.getElementById('criticalStockPopup');
+        if (!popup || criticalSoundPlayed) {
+          return;
+        }
+
+        playCriticalAlertSound();
+      }
+
+      function closeCriticalPopup() {
+        const popup = document.getElementById('criticalStockPopup');
+        if (popup) {
+          popup.style.display = 'none';
+        }
+      }
+
+      window.addEventListener('load', function() {
+        const popup = document.getElementById('criticalStockPopup');
+        if (!popup) {
+          return;
+        }
+
+        tryPlayCriticalAlertSound();
+        document.addEventListener('click', tryPlayCriticalAlertSound, { once: true });
+        document.addEventListener('keydown', tryPlayCriticalAlertSound, { once: true });
+      });
     </script>
   </body>
 </html>

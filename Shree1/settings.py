@@ -75,6 +75,9 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # 7. Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'

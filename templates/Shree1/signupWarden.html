@@ -6,6 +6,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'Shree1/css/signup.css' %}">
     <title>Create Account - Warden</title>
+    <style>
+      .message-popup {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        margin-bottom: 18px;
+        border-radius: 14px;
+        border: 1px solid #fecaca;
+        background: linear-gradient(180deg, #fff5f5 0%, #fee2e2 100%);
+        box-shadow: 0 10px 24px rgba(220, 38, 38, 0.08);
+        animation: popupSlideIn 0.25s ease-out;
+      }
+      .message-popup-icon {
+        width: 34px;
+        height: 34px;
+        flex-shrink: 0;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #dc2626;
+        color: white;
+        font-weight: 700;
+        font-size: 0.95rem;
+        box-shadow: 0 8px 16px rgba(220, 38, 38, 0.18);
+      }
+      .message-popup-text {
+        color: #991b1b;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        font-weight: 600;
+      }
+      @keyframes popupSlideIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
 </head>
 <body>
     <div class="signup-container">
@@ -14,13 +52,16 @@
         <h1>Create Your Account</h1>
         <p class="subtitle">Join us as a <strong>Warden</strong></p>
 
-        {% if messages %}
-            {% for message in messages %}
-                <div style="padding: 10px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px; text-align: center;">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
+      {% if messages %}
+      {% for message in messages %}
+      {% if message.tags == 'error' %}
+      <div class="message-popup">
+        <div class="message-popup-icon">!</div>
+        <div class="message-popup-text">{{ message }}</div>
+      </div>
+      {% endif %}
+      {% endfor %}
+      {% endif %}
         
         <form method="POST" action="{% url 'warden_signup' %}">
             {% csrf_token %}

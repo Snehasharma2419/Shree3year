@@ -49,9 +49,83 @@
             from { opacity: 0; transform: translateY(-5px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .error-popup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 9999;
+        }
+
+        .error-popup-card {
+            width: min(420px, 100%);
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 24px 22px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+            border: 1px solid #fecaca;
+            text-align: center;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
+        .error-popup-icon {
+            width: 54px;
+            height: 54px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fee2e2;
+            color: #b91c1c;
+            font-size: 1.2rem;
+        }
+
+        .error-popup-card h3 {
+            margin: 0 0 8px;
+            font-size: 1.2rem;
+            color: #111827;
+        }
+
+        .error-popup-card p {
+            margin: 0 0 18px;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+
+        .error-popup-btn {
+            border: none;
+            background: #f97316;
+            color: #fff;
+            border-radius: 10px;
+            padding: 11px 18px;
+            font-weight: 700;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+            <div class="error-popup-overlay" id="workerLoginErrorPopup">
+                <div class="error-popup-card">
+                    <div class="error-popup-icon">
+                        <i class="fas fa-exclamation"></i>
+                    </div>
+                    <h3>Login Failed</h3>
+                    <p>{{ message }}</p>
+                    <button type="button" class="error-popup-btn" onclick="closeWorkerLoginError()">Okay</button>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     <div class="login-card">
         <a href="{% url 'welcome_role' %}" class="back-arrow">←</a>
         
@@ -60,10 +134,12 @@
 
         {% if messages %}
             {% for message in messages %}
+                {% if message.tags == 'error' %}
                 <div class="error-banner">
                     <i class="fas fa-exclamation-circle"></i>
                     {{ message }}
                 </div>
+                {% endif %}
             {% endfor %}
         {% endif %}
 
@@ -90,6 +166,13 @@
             Don't have an account? <a href="{% url 'worker_signup' %}" style="color: #f97316;">Sign up here</a>
         </p>
     </div>
-    <script src="{% static 'Shree1/js/login.js' %}"></script>
+    <script>
+        function closeWorkerLoginError() {
+            const popup = document.getElementById('workerLoginErrorPopup');
+            if (popup) {
+                popup.style.display = 'none';
+            }
+        }
+    </script>
 </body>
 </html>

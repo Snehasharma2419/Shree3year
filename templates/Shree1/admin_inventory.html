@@ -39,12 +39,10 @@
     <div class="container">
       <aside class="sidebar">
         <div class="logo-section">
-          <div class="logo-icon" style="width:45px; height:45px; background:#fff; border-radius:10px; overflow:hidden;">
-            <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="Logo" style="width:100%; height:100%; object-fit:cover;" />
-          </div>
-          <div class="logo-text">
+          <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="SHREE Logo" class="nav-logo-file" style="width: 48px; height: 48px; border-radius: 10px; object-fit: contain;" />
+          <div>
             <h2 class="logo-name">SHREE</h2>
-            <p class="logo-tagline">Smart Hostel Record</p>
+            <p style="font-size: 10px; color: #94a3b8">Smart Hostel Record & Employee Evaluation</p>
           </div>
         </div>
         <nav class="nav-menu">
@@ -190,6 +188,7 @@
         const btn = document.getElementById("openModalBtn");
         const closeX = document.getElementById("closeX");
         const cancelBtn = document.getElementById("cancelBtn");
+        const shouldReopenModal = `{% if messages %}{% for message in messages %}{% if message.tags == "error" %}1{% endif %}{% endfor %}{% endif %}`;
 
         btn.onclick = () => modal.style.display = "block";
         closeX.onclick = () => modal.style.display = "none";
@@ -197,6 +196,10 @@
         
         window.onclick = (event) => {
             if (event.target == modal) modal.style.display = "none";
+        }
+
+        if (shouldReopenModal.trim() === "1") {
+            modal.style.display = "block";
         }
     </script>
   </body>

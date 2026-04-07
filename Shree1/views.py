@@ -1,6 +1,7 @@
 #views.py
 # Shree1/views.py
 from django.db.models import Q 
+from django.db import IntegrityError, transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -280,20 +281,24 @@ def add_university_id(request): #sneha edit
         uni_id = request.POST.get('uni_id')
         role = request.POST.get('role')
 
-        # Database mein naya ID save karna
-        UniversityID.objects.create(
-            full_name=full_name, 
-            university_id=uni_id, 
-            role=role
-        )
+        try:
+            # Database mein naya ID save karna
+            UniversityID.objects.create(
+                full_name=full_name, 
+                university_id=uni_id, 
+                role=role
+            )
 
-        # ---> NAYA NOTIFICATION LOGIC <---
-        Notification.objects.create(
-            message=f"New {role} authorized: {full_name}",
-            noti_type='user' # Blue icon aayega (user registration ke liye)
-        )
+            # ---> NAYA NOTIFICATION LOGIC <---
+            Notification.objects.create(
+                message=f"New {role} authorized: {full_name}",
+                noti_type='user' # Blue icon aayega (user registration ke liye)
+            )
 
-        messages.success(request, "New ID Authorized successfully!")
+            messages.success(request, "New ID Authorized successfully!")
+        except IntegrityError:
+            messages.error(request, "This University ID already exists. Please use a different ID.")
+
         return redirect('admin_user_management')
     
 @login_required
@@ -302,9 +307,20 @@ def delete_uni_id(request, id): # sneha edit
     obj = get_object_or_404(UniversityID, id=id)
     name = obj.full_name
     role = obj.role
-    
-    # 2. Database se delete karein
-    obj.delete()
+    linked_user = User.objects.filter(university_id=obj.university_id).first()
+
+    with transaction.atomic():
+        if role == 'worker':
+            Worker.objects.filter(university_record=obj).delete()
+            Worker.objects.filter(worker_id=obj.university_id).delete()
+        elif role == 'warden':
+            Warden.objects.filter(university_record=obj).delete()
+            Warden.objects.filter(warden_id=obj.university_id).delete()
+
+        if linked_user:
+            linked_user.delete()
+
+        obj.delete()
 
     # 3. ---> DYNAMIC NOTIFICATION <---
     Notification.objects.create(
@@ -312,7 +328,7 @@ def delete_uni_id(request, id): # sneha edit
         noti_type='alert' # Red alert icon aayega kyunki kuch delete hua hai
     )
 
-    messages.success(request, f"ID for {name} deleted successfully!")
+    messages.success(request, f"{role.capitalize()} '{name}' was deleted from all linked records.")
     return redirect('admin_user_management')
 
 
@@ -326,23 +342,28 @@ from accounts.models import Inventory, DailyUsage
 
 @login_required
 def admin_inventory(request):
+    last_item = Inventory.objects.all().order_by('id').last()
+    next_id = "I101" # Default agar DB khali hai
+    if last_item and last_item.item_id:
+        nums = re.findall(r'\d+', last_item.item_id)
+        if nums:
+            next_id = f"I{int(nums[-1]) + 1}"
+
     if request.method == "POST":
         # Form se data nikalna
-        name = request.POST.get('item_name')
+        name = request.POST.get('item_name', '').strip()
         current = request.POST.get('current_stock')
         required = request.POST.get('required_stock')
         unit = request.POST.get('unit')
 
+        if not name:
+            messages.error(request, "Item name is required.")
+            return redirect('admin_inventory')
 
-        last_item = Inventory.objects.all().order_by('id').last()
-        next_id = "I101" # Default agar DB khali hai
-        if last_item and last_item.item_id:
-            nums = re.findall(r'\d+', last_item.item_id)
-            if nums:
-                next_id = f"I{int(nums[-1]) + 1}"
+        if Inventory.objects.filter(item_name__iexact=name).exists():
+            messages.error(request, f"'{name}' already exists in inventory.")
+            return redirect('admin_inventory')
 
-
-        # Database mein save karna
         Inventory.objects.create(
             item_id=next_id,
             item_name=name,
@@ -366,6 +387,7 @@ def admin_inventory(request):
         'critical_count': critical_count,
         'status': "Attention Needed" if critical_count > 0 else "Healthy",
         'recent_usage': recent_usage,
+        'next_id': next_id,
     }
     return render(request, 'Shree1/admin_inventory.html', context)
 

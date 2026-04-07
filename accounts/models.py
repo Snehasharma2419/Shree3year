@@ -220,6 +220,7 @@ class LeaveRequest(models.Model):
     STATUS_CHOICES = [('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')]
 
     worker = models.ForeignKey(Worker, on_delete=models.CASCADE, null=True, blank=True)
+    worker_master = models.ForeignKey(UniversityID, on_delete=models.SET_NULL, null=True, blank=True)
     warden = models.ForeignKey(Warden, on_delete=models.CASCADE)
     is_warden_request = models.BooleanField(default=False)
     leave_type = models.CharField(max_length=50)
@@ -227,7 +228,18 @@ class LeaveRequest(models.Model):
     end_date = models.DateField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     reason = models.TextField(null=True, blank=True)
+    attachment = models.FileField(upload_to='leave_attachments/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def display_worker_name(self):
+        if self.is_warden_request:
+            return "Self (Warden)"
+        if self.worker:
+            return self.worker.name or self.worker.worker_id
+        if self.worker_master:
+            return self.worker_master.full_name or self.worker_master.university_id
+        return "Unknown Worker"
 
 #sneha ka edit (Notification)
 class Notification(models.Model):
@@ -246,3 +258,18 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.recipient.username if self.recipient else 'All'}: {self.message}"
+
+class GeneratedReport(models.Model):
+    REPORT_TYPE_CHOICES = (
+        ('summary_pdf', 'Summary PDF'),
+        ('worker_excel', 'Worker Excel'),
+    )
+
+    title = models.CharField(max_length=255)
+    report_type = models.CharField(max_length=30, choices=REPORT_TYPE_CHOICES)
+    file = models.FileField(upload_to='saved_reports/')
+    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} ({self.report_type})"

@@ -40,13 +40,31 @@
         border: 2px dashed #2563eb;
         border-radius: 6px;
       }
+      .critical-alert-banner {
+        margin-bottom: 20px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        background: #fef2f2;
+        color: #991b1b;
+        border: 2px solid #ef4444;
+        font-weight: 700;
+        animation: criticalBlink 1s infinite;
+      }
+      .blink-critical {
+        animation: criticalBlink 1s infinite;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+      }
+      @keyframes criticalBlink {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.45; transform: scale(1.02); }
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <aside class="sidebar">
         <div class="logo-section">
-          <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="SHREE Logo" class="nav-logo-file" style="width: 50px; height: 50px; border-radius: 8px; object-fit: contain;" />
+          <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="SHREE Logo" class="nav-logo-file" style="width: 48px; height: 48px; border-radius: 10px; object-fit: contain;" />
           <div>
             <h2 class="logo-name">SHREE</h2>
             <p style="font-size: 10px; color: #94a3b8">Smart Hostel Record & Employee Evaluation</p>
@@ -111,10 +129,16 @@
 
         <div class="inventory-stats">
           <div class="stat-box"><span>Total Items</span><h2>{{ total_items|default:"0" }}</h2></div>
-          <div class="stat-box critical"><span>Critical Stock</span><h2 class="red-text">{{ critical_count|default:"0" }}</h2></div>
+          <div class="stat-box critical {% if has_critical_stock %}blink-critical{% endif %}"><span>Critical Stock</span><h2 class="red-text">{{ critical_count|default:"0" }}</h2></div>
           <div class="stat-box low"><span>Low Stock</span><h2 class="orange-text">{{ low_count|default:"0" }}</h2></div>
           <div class="stat-box good"><span>Good Stock</span><h2 class="green-text">{{ good_count|default:"0" }}</h2></div>
         </div>
+
+        {% if has_critical_stock %}
+        <div class="critical-alert-banner">
+          <i class="fa-solid fa-triangle-exclamation"></i> Critical stock detected. An urgent refill alert has been sent to the supplier.
+        </div>
+        {% endif %}
 
         <form method="GET" action="{% url 'inventory' %}" class="search-container">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -153,7 +177,7 @@
                   </td>
                   <td>{{ item.required_stock }} {{ item.unit }}</td>
                   <td>
-                    <span class="status-tag {{ item.get_status|lower }}">
+                    <span class="status-tag {{ item.get_status|lower }} {% if item.get_status == 'Critical' %}blink-critical{% endif %}">
                       <i class="fa-solid {% if item.get_status == 'Good' %}fa-check{% else %}fa-triangle-exclamation{% endif %}"></i>
                       {{ item.get_status }}
                     </span>
@@ -181,5 +205,66 @@
       </main>
     </div>
     <script src="{% static 'Shree1/js/inventory.js' %}"></script>
+    <script>
+      let inventoryCriticalSoundPlayed = false;
+
+      function playAlertTone(pattern) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) {
+          return;
+        }
+
+        const audioContext = new AudioCtx();
+        const gainNode = audioContext.createGain();
+        gainNode.connect(audioContext.destination);
+
+        const startAt = audioContext.currentTime + 0.02;
+        gainNode.gain.setValueAtTime(0.001, startAt);
+        gainNode.gain.exponentialRampToValueAtTime(0.12, startAt + 0.03);
+
+        pattern.forEach(function(note) {
+          const oscillator = audioContext.createOscillator();
+          oscillator.type = note.type || 'triangle';
+          oscillator.frequency.setValueAtTime(note.frequency, startAt + note.start);
+          oscillator.connect(gainNode);
+          oscillator.start(startAt + note.start);
+          oscillator.stop(startAt + note.end);
+        });
+
+        const totalDuration = pattern[pattern.length - 1].end;
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startAt + totalDuration + 0.05);
+
+        setTimeout(function() {
+          audioContext.close();
+        }, Math.ceil((totalDuration + 0.15) * 1000));
+      }
+
+      function playInventoryCriticalSound() {
+        if (inventoryCriticalSoundPlayed) {
+          return;
+        }
+
+        playAlertTone([
+          { frequency: 880, start: 0.00, end: 0.14, type: 'sawtooth' },
+          { frequency: 660, start: 0.18, end: 0.34, type: 'sawtooth' },
+          { frequency: 880, start: 0.38, end: 0.56, type: 'triangle' }
+        ]);
+        inventoryCriticalSoundPlayed = true;
+      }
+
+      function triggerInventoryCriticalSound() {
+        {% if has_critical_stock %}
+        playInventoryCriticalSound();
+        {% endif %}
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        {% if has_critical_stock %}
+        triggerInventoryCriticalSound();
+        document.addEventListener('click', triggerInventoryCriticalSound, { once: true });
+        document.addEventListener('keydown', triggerInventoryCriticalSound, { once: true });
+        {% endif %}
+      });
+    </script>
   </body>
 </html>

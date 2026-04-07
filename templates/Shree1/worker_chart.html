@@ -1,0 +1,157 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Worker Chart</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #f5f7fb;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        width: 90%;
+        margin: 30px auto;
+      }
+
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .title {
+        font-size: 24px;
+        font-weight: bold;
+      }
+
+      .back-btn {
+        background: #4f46e5;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 6px;
+        text-decoration: none;
+      }
+
+      .back-btn:hover {
+        background: #3730a3;
+      }
+
+      .filter {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      select,
+      button {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+      }
+
+      button {
+        background: #10b981;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #059669;
+      }
+
+      .chart-container {
+        height: 350px;
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <a href="{% url 'worker_report' %}" class="back-btn">← Back</a>
+        <div class="title">{{ worker_name }} - Daily Attendance</div>
+      </div>
+
+      <div class="card">
+        <!-- Month Filter -->
+        <div class="filter">
+          <form method="get">
+            <select name="month">
+              <option value="1">Jan</option>
+              <option value="2">Feb</option>
+              <option value="3">Mar</option>
+              <option value="4">Apr</option>
+              <option value="5">May</option>
+              <option value="6">Jun</option>
+              <option value="7">Jul</option>
+              <option value="8">Aug</option>
+              <option value="9">Sep</option>
+              <option value="10">Oct</option>
+              <option value="11">Nov</option>
+              <option value="12">Dec</option>
+            </select>
+
+            <button type="submit">View</button>
+          </form>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-container">
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+            const rawStatus = {{ status|safe }};
+      const labels = {{ dates|safe }};
+
+      const presentData = rawStatus.map(s => s === "Present" ? 1 : 0);
+      const absentData = rawStatus.map(s => s === "Absent" ? 1 : 0);
+
+      const ctx = document.getElementById('chart');
+
+      new Chart(ctx, {
+          type: 'bar',
+          data: {
+              labels: labels,
+              datasets: [
+                  {
+                      label: 'Present',
+                      data: presentData,
+                      backgroundColor: 'green'
+                  },
+                  {
+                      label: 'Absent',
+                      data: absentData,
+                      backgroundColor: 'red'
+                  }
+              ]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      ticks: {
+                          stepSize: 1
+                      }
+                  }
+              }
+          }
+      });
+    </script>
+  </body>
+</html>

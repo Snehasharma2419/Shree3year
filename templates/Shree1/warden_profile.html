@@ -5,25 +5,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SHREE - Warden Profile</title>
-    <style> .logo-icon {
-        width: 45px;          /* Box ka size thoda badha sakte hain */
-        height: 45px;
-        background-color: #ffffff; 
-        border-radius: 10px;
+    <style>
+      .logo-section {
         display: flex;
         align-items: center;
-        justify-content: center;
-        overflow: hidden;     /* Taki image bahar na nikle */
-        padding: 2px;         /* Taki image border se thoda gap rakhe */
+        gap: 12px;
+        margin-bottom: 16px;
       }
-
-/* Image ki styling jo aapne box ke andar dali hai */
-      .logo-icon img {
-        width: 100%;          /* Box ki puri width cover kare */
-        height: 100%;         /* Box ki puri height cover kare */
-        object-fit: contain;  /* 👈 Sabse important: Puri image dikhayega bina kate */
-        display: block;
-       }</style>
+      .logo-name {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        color: #0f172a;
+      }
+      .nav-item {
+        font-size: 15px;
+      }
+    </style>
     <link
       rel="stylesheet"
       href="{% static 'Shree1/css/dashboardWarden.css' %}"
@@ -41,12 +40,10 @@
     <div class="container">
       <aside class="sidebar">
         <div class="logo-section">
-          <div class="logo-icon"><img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="Logo" /></div>
+          <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="SHREE Logo" class="nav-logo-file" style="width: 48px; height: 48px; border-radius: 10px; object-fit: contain;" />
           <div>
             <h2 class="logo-name">SHREE</h2>
-            <p class="logo-tagline">
-              Smart Hostel Record & Employee Evaluation
-            </p>
+            <p style="font-size: 10px; color: #94a3b8">Smart Hostel Record & Employee Evaluation</p>
           </div>
         </div>
 

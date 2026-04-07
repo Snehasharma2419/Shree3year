@@ -40,6 +40,19 @@
         position: fixed;
         height: 100vh;
       }
+      .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .logo-name {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        color: #0f172a;
+      }
       .nav-menu {
         display: flex;
         flex-direction: column;
@@ -55,6 +68,7 @@
         text-decoration: none;
         border-radius: 8px;
         font-weight: 500;
+        font-size: 15px;
       }
       .nav-item.active,
       .nav-item:hover {
@@ -152,6 +166,32 @@
         padding: 30px;
         border-radius: 15px;
         width: 500px;
+        position: relative;
+      }
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+      .close-btn {
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 999px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 24px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .close-btn:hover {
+        background: #dbeafe;
       }
       .form-group {
         margin-bottom: 15px;
@@ -176,14 +216,10 @@
     <div class="container">
       <aside class="sidebar">
         <div class="logo-section">
-          <img
-            src="{% static 'Shree1/images/logo_img.jpeg' %}"
-            alt="Logo"
-            style="width: 45px; border-radius: 8px"
-          />
+          <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="SHREE Logo" class="nav-logo-file" style="width: 48px; height: 48px; border-radius: 10px; object-fit: contain;" />
           <div>
-            <h2 style="font-size: 18px; margin: 0">SHREE</h2>
-            <p style="font-size: 9px; color: #94a3b8">Smart Hostel Record</p>
+            <h2 class="logo-name">SHREE</h2>
+            <p style="font-size: 10px; color: #94a3b8">Smart Hostel Record & Employee Evaluation</p>
           </div>
         </div>
         <nav class="nav-menu">
@@ -243,8 +279,7 @@
         {% if req.is_warden_request %}
           Self (Warden)
         {% else %}
-          {# Worker name fetch karne ka sahi tarika #}
-          {{ req.worker.name|default:req.worker.worker_id }}
+          {{ req.display_worker_name }}
         {% endif %}
       </strong>
     </td>
@@ -281,8 +316,7 @@
         {% if h.is_warden_request %}
           Self (Warden)
         {% else %}
-          {# h.worker.name fetch karein, fallback ke liye ID #}
-          {{ h.worker.name|default:h.worker.worker_id }}
+          {{ h.display_worker_name }}
         {% endif %}
       </strong>
     </td>
@@ -313,7 +347,7 @@
             &times;
           </button>
         </div>
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
           {% csrf_token %}
           <div class="form-group">
             <label>Leave for:</label>
@@ -358,6 +392,10 @@
           </div>
           <div class="form-group">
             <label>Reason</label><textarea name="reason" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Upload Photo or PDF</label>
+            <input type="file" name="leave_attachment" accept="image/*,.pdf,application/pdf" required/>
           </div>
           <button type="submit" class="btn-request" style="width: 100%">
             Submit Request

@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from .models import (
     User, UniversityID, Worker, Warden, Supplier, 
     Attendance, Inventory, LeaveRequest, DeliveryOrder, 
-    DailyUsage, Notification
+    DailyUsage, Notification, GeneratedReport
 )
 
 # 1. CUSTOM USER ADMIN
@@ -88,3 +88,11 @@ class DailyUsageAdmin(admin.ModelAdmin):
     list_display = ('item', 'quantity_used', 'date')
     list_filter = ('date', 'item')
     search_fields = ('item__item_name',)
+
+
+@admin.register(GeneratedReport)
+class GeneratedReportAdmin(admin.ModelAdmin):
+    list_display = ('title', 'report_type', 'generated_by', 'created_at', 'file')
+    list_filter = ('report_type', 'created_at')
+    search_fields = ('title', 'generated_by__username')
+    readonly_fields = ('created_at',)

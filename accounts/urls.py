@@ -59,6 +59,8 @@ urlpatterns = [
      #ayushi
     path('admin/inventory/', views.admin_inventory, name='admin_inventory'),
 
-    
+    path('worker/<int:worker_id>/chart/', views.worker_chart, name='worker_chart'),
+    path('worker/<int:worker_id>/excel/', views.export_worker_excel, name='export_worker_excel'),
+
 
 ]

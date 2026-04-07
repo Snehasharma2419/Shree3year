@@ -37,12 +37,12 @@
     <div class="container">
         <aside class="sidebar">
             <div class="logo-section">
-                <div class="logo-icon"><img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="Logo" /></div>
-                <div class="logo-text">
-                    <h2 class="logo-name">SHREE</h2>
-                    <p class="logo-tagline">Smart Hostel Record & <br>Employee Evaluation</p>
-                </div>
-            </div>
+          <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="SHREE Logo" class="nav-logo-file" style="width: 48px; height: 48px; border-radius: 10px; object-fit: contain;" />
+          <div>
+            <h2 class="logo-name">SHREE</h2>
+            <p style="font-size: 10px; color: #94a3b8">Smart Hostel Record & Employee Evaluation</p>
+          </div>
+        </div>
 
             <nav class="nav-menu">
                 <a href="{% url 'worker_dashboard' %}" class="nav-item active">
@@ -192,6 +192,62 @@
             window.location.reload();
         }
     };
+    function playAlertTone(pattern) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) {
+            return;
+        }
+
+        const audioContext = new AudioCtx();
+        const gainNode = audioContext.createGain();
+        gainNode.connect(audioContext.destination);
+
+        const startAt = audioContext.currentTime + 0.02;
+        gainNode.gain.setValueAtTime(0.001, startAt);
+        gainNode.gain.exponentialRampToValueAtTime(0.1, startAt + 0.03);
+
+        pattern.forEach(function(note) {
+            const oscillator = audioContext.createOscillator();
+            oscillator.type = note.type || 'triangle';
+            oscillator.frequency.setValueAtTime(note.frequency, startAt + note.start);
+            oscillator.connect(gainNode);
+            oscillator.start(startAt + note.start);
+            oscillator.stop(startAt + note.end);
+        });
+
+        const totalDuration = pattern[pattern.length - 1].end;
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startAt + totalDuration + 0.05);
+
+        setTimeout(function() {
+            audioContext.close();
+        }, Math.ceil((totalDuration + 0.15) * 1000));
+    }
+
+    function playNotificationSound() {
+        if (window.notificationSoundPlayed) {
+            return;
+        }
+
+        playAlertTone([
+            { frequency: 740, start: 0.00, end: 0.12, type: 'triangle' },
+            { frequency: 880, start: 0.16, end: 0.30, type: 'triangle' }
+        ]);
+        window.notificationSoundPlayed = true;
+    }
+
+    function triggerNotificationSound() {
+        {% if notifications_count > 0 %}
+        playNotificationSound();
+        {% endif %}
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if notifications_count > 0 %}
+        triggerNotificationSound();
+        document.addEventListener('click', triggerNotificationSound, { once: true });
+        document.addEventListener('keydown', triggerNotificationSound, { once: true });
+        {% endif %}
+    });
 </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
-from .models import User, UniversityID, Worker, Warden, Supplier, Attendance, Inventory, LeaveRequest, Notification
+from .models import User, UniversityID, Worker, Warden, Supplier, Attendance, Inventory, LeaveRequest, Notification, GeneratedReport, DailyUsage
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.db.models import Count
 from django.db.models import F
 from datetime import datetime, date
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.contrib import messages
 import re
 from django.http import HttpResponse
@@ -401,6 +401,12 @@ def supplier_dashboard(request):
 
     # 1. Wo items nikalna jinka stock kam hai (Deficit calculation ke saath)
     # Hum annotation use karenge deficit calculate karne ke liye
+    critical_items = Inventory.objects.filter(
+        current_stock__lte=F('required_stock') * 0.2
+    ).annotate(
+        deficit=F('required_stock') - F('current_stock')
+    )
+
     pending_items = Inventory.objects.filter(
         current_stock__lt=F('required_stock')
     ).annotate(
@@ -417,6 +423,7 @@ def supplier_dashboard(request):
     
     context = {
         'pending_items': pending_items,
+        'critical_items': critical_items,
         'active_shipments': active_shipments,
         'total_items_count': total_items_count,
     }
@@ -455,6 +462,7 @@ def worker_profile(request):
 
         # update email in User model
         request.user.email = email
+        request.user.phone = phone
         request.user.save()
 
         # update phone in Worker model
@@ -526,7 +534,8 @@ def inventory_view(request):
     total_items = all_inventory.count()
     
     # Critical logic: Stock <= 20% of Required
-    critical_count = all_inventory.filter(current_stock__lte=F('required_stock') * 0.2).count()
+    critical_items = all_inventory.filter(current_stock__lte=F('required_stock') * 0.2)
+    critical_count = critical_items.count()
     
     # Low logic: 20% < Stock <= 50%
     low_count = all_inventory.filter(
@@ -551,6 +560,7 @@ def inventory_view(request):
         'warden': warden,
         'total_items': total_items,
         'critical_count': critical_count,
+        'has_critical_stock': critical_count > 0,
         'low_count': low_count,
         'good_count': good_count,
         'search_query': search_query
@@ -610,6 +620,11 @@ def warden_leave_view(request):
         start_date_val = request.POST.get('start_date')
         end_date_val = request.POST.get('end_date')
         reason = request.POST.get('reason', '')
+        leave_attachment = request.FILES.get('leave_attachment')
+
+        if not leave_attachment:
+            messages.error(request, "Please upload an image or PDF before submitting the leave request.")
+            return redirect('warden_leave')
 
         # Basic Date Validation
         try:
@@ -632,6 +647,7 @@ def warden_leave_view(request):
                 start_date=s_date,
                 end_date=e_date,
                 reason=reason,
+                attachment=leave_attachment,
                 status='Pending'
             )
             #admin ko noti
@@ -653,16 +669,18 @@ def warden_leave_view(request):
                 return redirect('warden_leave')
                 
             try:
-                # UniversityID se Worker profile dhoondna
-                worker_obj = Worker.objects.get(worker_id=w_id)
+                worker_master = UniversityID.objects.get(university_id=w_id, role='worker')
+                worker_obj = Worker.objects.filter(worker_id=w_id).first()
                 LeaveRequest.objects.create(
                     worker=worker_obj,
+                    worker_master=worker_master,
                     warden=current_warden,
                     is_warden_request=False,
                     leave_type=leave_type,
                     start_date=s_date,
                     end_date=e_date,
                     reason=reason,
+                    attachment=leave_attachment,
                     status='Pending'
                 )
                 #admin ko noti jaega 
@@ -674,15 +692,15 @@ def warden_leave_view(request):
                 if admin_user:
                     Notification.objects.create(
                         recipient=admin_user,
-                        message=f"Warden {current_warden.name} requested leave for Worker {worker_obj.name}.",
+                        message=f"Warden {current_warden.name} requested leave for Worker {worker_master.full_name}.",
                         noti_type='leave'
                     )
 
                 # Success message (if admin_user ke bahar, try block ke andar)
-                messages.success(request, f"Leave request for {worker_obj.name} submitted.")
+                messages.success(request, f"Leave request for {worker_master.full_name} submitted.")
 
-            except Worker.DoesNotExist:
-                messages.error(request, f"Worker profile with ID {w_id} not found.")
+            except UniversityID.DoesNotExist:
+                messages.error(request, f"Worker with ID {w_id} not found in the master list.")
 
         return redirect('warden_leave')
 
@@ -716,6 +734,7 @@ def warden_profile(request):
 
         # update email in User model
         request.user.email = email
+        request.user.phone = phone
         request.user.save()
 
         # update phone in Warden model
@@ -839,6 +858,13 @@ def approve_leave_logic(request, leave_request_id):
         days_requested = delta.days + 1 # +1 kyunki starting day bhi count hota hai
 
         worker = leave_req.worker
+        worker_name = leave_req.display_worker_name
+
+        if worker is None:
+            leave_req.status = 'Approved'
+            leave_req.save()
+            messages.success(request, f"Leave Approved for {worker_name}. No registered worker profile was linked, so no leave balance was deducted.")
+            return redirect('admin_dashboard')
         
         # Check karein ki balance bacha hai ya nahi
         if worker.leave_balance >= days_requested:
@@ -850,10 +876,10 @@ def approve_leave_logic(request, leave_request_id):
             leave_req.status = 'Approved'
             leave_req.save()
             
-            messages.success(request, f"Leave Approved! {days_requested} days deducted from {worker.name}'s balance.")
+            messages.success(request, f"Leave Approved! {days_requested} days deducted from {worker_name}'s balance.")
         else:
             # Agar balance kam hai
-            messages.error(request, f"Insufficient Balance! {worker.name} only has {worker.leave_balance} leaves left.")
+            messages.error(request, f"Insufficient Balance! {worker_name} only has {worker.leave_balance} leaves left.")
             leave_req.status = 'Rejected'
             leave_req.save()
             
@@ -1019,165 +1045,512 @@ def warden_dashboard(request):
         'low_stock_items': low_stock_items,
     })
     
-from django.shortcuts import render
-from django.db.models import Count
-from .models import Worker, Attendance
-
-def worker_report(request):
-    workers = Worker.objects.all()
-    report_data = []
-
-    for worker in workers:
-        uid = worker.university_record
-        attendance = Attendance.objects.filter(worker_master=uid)
-        if uid:
-            print(f"DEBUG: Worker {worker.name} (UniversityID PK: {uid.id})")
-            print(f"Attendance in DB Count: {Attendance.objects.filter(worker_master_id=uid.id).count()}")
-        else:
-            print(f"DEBUG: Worker {worker.name} has NO University Record!")
-
-        report_data.append({
-            'worker': worker,
-            'present': attendance.filter(status='Present').count(),
-            'absent': attendance.filter(status='Absent').count(),
-            'leave': attendance.filter(status='Leave').count(),
-        })
-
-    return render(request, 'Shree1/worker_report.html', {
-        'report_data': report_data
-    })
-    
-
+from io import BytesIO
+from django.core.files.base import ContentFile
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
-from django.http import HttpResponse
-from datetime import date
+import pandas as pd
+
+
+def _store_generated_report(request, *, title, report_type, filename, content_bytes):
+    GeneratedReport.objects.create(
+        title=title,
+        report_type=report_type,
+        generated_by=request.user if getattr(request, 'user', None) and request.user.is_authenticated else None,
+        file=ContentFile(content_bytes, name=filename),
+    )
+
+
+def worker_report(request):
+    workers = UniversityID.objects.filter(role='worker').order_by('full_name')
+    report_data = []
+
+    for worker in workers:
+        attendance = Attendance.objects.filter(worker_master=worker)
+        report_data.append({
+            'id': worker.id,
+            'worker_name': worker.full_name,
+            'present': attendance.filter(status='Present').count(),
+            'absent': attendance.filter(status='Absent').count(),
+        })
+
+    return render(request, 'Shree1/worker_report.html', {
+        'workers': report_data
+    })
+
 
 def download_worker_report(request):
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="worker_report.pdf"'
-
-    doc = SimpleDocTemplate(response, pagesize=letter)
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
     elements = []
 
     styles = getSampleStyleSheet()
+    generated_on = date.today()
 
-    # Title
     elements.append(Paragraph("Worker Attendance Report", styles['Title']))
     elements.append(Spacer(1, 10))
-    elements.append(Paragraph(f"Date: {date.today()}", styles['Normal']))
+    elements.append(Paragraph(f"Date: {generated_on}", styles['Normal']))
     elements.append(Spacer(1, 20))
 
-    # Table Data
-    data = [['Worker Name', 'Present', 'Absent', 'Leave']]
+    data = [['Worker Name', 'Present', 'Absent']]
 
-    workers = Worker.objects.all()
-
+    workers = UniversityID.objects.filter(role='worker').order_by('full_name')
     for worker in workers:
-        uid = worker.university_record
-        attendance = Attendance.objects.filter(worker_master=uid)
+        attendance = Attendance.objects.filter(worker_master=worker)
+        data.append([
+            worker.full_name,
+            attendance.filter(status='Present').count(),
+            attendance.filter(status='Absent').count(),
+        ])
 
-        present = attendance.filter(status='Present').count()
-        absent = attendance.filter(status='Absent').count()
-        leave = attendance.filter(status='Leave').count()
-
-        data.append([worker.name, present, absent, leave])
-
-    # Create Table
     table = Table(data)
-
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.blue),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
     ]))
-
     elements.append(table)
-
-    # Build PDF
     doc.build(elements)
 
-    admin_user = User.objects.filter(Q(role='admin') | Q(is_superuser=True)).first()
+    pdf_bytes = buffer.getvalue()
+    filename = f"worker_report_{generated_on.strftime('%Y%m%d')}.pdf"
+    _store_generated_report(
+        request,
+        title=f"Worker Attendance Report - {generated_on}",
+        report_type='summary_pdf',
+        filename=filename,
+        content_bytes=pdf_bytes,
+    )
 
-    # Agar hum chahte hain ki sirf ADMIN ko dikhe:
+    admin_user = User.objects.filter(role='admin').first() or User.objects.filter(is_superuser=True).first()
     if admin_user:
         Notification.objects.create(
-            recipient=admin_user, # <--- Ab hamesha Admin hi recipient hoga
-            message=f"Attendance Report was generated and downloaded on {date.today()}.",
+            recipient=admin_user,
+            message=f"Attendance Report was generated and saved on {generated_on}.",
             noti_type='report'
         )
-    
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
+
+def worker_chart(request, worker_id):
+    worker = get_object_or_404(UniversityID, id=worker_id, role='worker')
+
+    month = int(request.GET.get('month', datetime.now().month))
+    year = int(request.GET.get('year', datetime.now().year))
+
+    records = Attendance.objects.filter(
+        worker_master=worker,
+        date__month=month,
+        date__year=year
+    ).order_by('date')
+
+    dates = []
+    status = []
+
+    for record in records:
+        dates.append(record.date.strftime("%d %b"))
+        status.append(record.status)
+
+    context = {
+        'worker': worker,
+        'worker_name': worker.full_name,
+        'dates': dates,
+        'status': status,
+    }
+
+    return render(request, 'Shree1/worker_chart.html', context)
+
+
+def export_worker_excel(request, worker_id):
+    worker = get_object_or_404(UniversityID, id=worker_id, role='worker')
+
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    records = Attendance.objects.filter(
+        worker_master=worker,
+        date__range=[start_date, end_date]
+    ).order_by('date')
+
+    data = []
+    for record in records:
+        data.append({
+            'Date': record.date,
+            'Status': record.status
+        })
+
+    df = pd.DataFrame(data)
+    buffer = BytesIO()
+    df.to_excel(buffer, index=False)
+    excel_bytes = buffer.getvalue()
+
+    safe_name = worker.full_name.replace(' ', '_')
+    filename = f"{safe_name}_{start_date}_to_{end_date}.xlsx"
+    _store_generated_report(
+        request,
+        title=f"{worker.full_name} Attendance Report ({start_date} to {end_date})",
+        report_type='worker_excel',
+        filename=filename,
+        content_bytes=excel_bytes,
+    )
+
+    response = HttpResponse(
+        excel_bytes,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
 def forget_password(request):
-    if request.method == "POST":
-        username = request.POST.get('username')
-        entered_answer = request.POST.get('security_answer')
-        new_password = request.POST.get('new_password')
-
-        try:
-            user = User.objects.get(username=username)
-
-            # ✅ ANSWER MATCH
-            if user.security_answer and entered_answer and user.security_answer.strip().lower() == entered_answer.strip().lower():
-                user.set_password(new_password)
-                user.save()
-                messages.success(request, "Password reset successful")
-                if user.role == 'warden':
-                    return redirect('warden_login')
-                elif user.role == 'worker':
-                    return redirect('worker_login')
-                else:
-                    messages.error(request, "Something went wrong")
-                    return redirect('forget_password')
-
-        except User.DoesNotExist:
-            messages.error(request, "User not found")
-
     return render(request, 'Shree1/forget_password.html')
 
 
 
 
-     #ayushi
-from django.shortcuts import render
-from .models import Inventory, DailyUsage # Ensure models are imported
+
+
+import random
+import numpy as np # AI calculations ke liye
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Inventory, DeliveryOrder
+
+# --- 1. AI PREDICTION LOGIC ---
+def predict_stock_requirement(item_id):
+    item = Inventory.objects.get(item_id=item_id)
+    # AI Logic: Agar stock 20% se kam hai, toh high priority dispatch
+    stock_ratio = (item.current_stock / item.required_stock) * 100
+    
+    if stock_ratio < 20:
+        return "CRITICAL: Urgent Dispatch Needed"
+    return "STABLE: Regular Dispatch"
+
+# --- 2. AI DISPATCH & AUTO-OTP ---
+import random
+from django.shortcuts import redirect
+from django.contrib import messages
+from .models import Inventory, DeliveryOrder
+
+def supplier_dispatch_item(request):
+    if request.method == "POST":
+        # 1. JS ne jo checkboxes select kiye unki IDs uthao
+        selected_ids = request.POST.getlist('selected_items')
+        
+        if not selected_ids:
+            messages.error(request, "Please select at least one item.")
+            return redirect('supplier_dashboard')
+
+        # 2. Batch ke liye Single OTP (Warden ko dikhane ke liye)
+        batch_otp = str(random.randint(100000, 999999))
+        any_saved = False
+
+        for item_id in selected_ids:
+            # 3. Har item ki quantity uski specific ID se uthao
+            qty_val = request.POST.get(f'qty_{item_id}')
+            
+            if qty_val and float(qty_val) > 0:
+                try:
+                    inventory_item = Inventory.objects.get(item_id=item_id)
+                    
+                    # 🔹 AI LOGIC: Stock Condition Check 🔹
+                    # Agar stock 20% se kam hai toh AI remark badal jayega
+                    stock_ratio = (inventory_item.current_stock / inventory_item.required_stock) * 100
+                    ai_suggestion = "CRITICAL: Urgent Delivery" if stock_ratio < 20 else "STABLE: Regular Supply"
+
+                    # 4. Database mein Create karna
+                    DeliveryOrder.objects.create(
+                        item=inventory_item,
+                        qty_delivered=float(qty_val),
+                        otp=batch_otp,
+                        status='DISPATCHED',
+                        ai_remark=ai_suggestion # AI Remark save ho raha hai
+                    )
+                    any_saved = True
+                except Inventory.DoesNotExist:
+                    continue
+
+        if any_saved:
+            messages.success(request, "Batch dispatched successfully! Please ask the Warden for the verification OTP at the gate.")
+        else:
+            messages.warning(request, "Quantities were missing or invalid.")
+
+    return redirect('supplier_dashboard')
+
+
+
+def supplier_confirm_delivery(request):
+    if request.method == 'POST':
+        entered_otp = request.POST.get('otp_code')
+        
+        # OTP Match Check
+        orders = DeliveryOrder.objects.filter(otp=entered_otp, status='DISPATCHED')
+
+        if orders.exists():
+            for order in orders:
+                # 🔹 AI STOCK UPDATION 🔹
+                # Purana stock + New delivery = Updated Inventory
+                inventory_item = order.item
+                inventory_item.current_stock += order.qty_delivered
+                inventory_item.save()
+
+                # Status mark as verified by AI logic
+                order.status = 'DELIVERED'
+                order.save()
+
+            messages.success(request, "Verification Successful: Inventory Synced.")
+        else:
+            messages.error(request, "Security Alert: Invalid OTP Attempt.")
+        
+        # OTP match hone aur inventory.save() hone ke baad:
+        admin_user = User.objects.filter(is_superuser=True).first()
+        Notification.objects.create(
+            recipient=admin_user,
+            message=f"Delivery Received: {order.qty_delivered} {inventory_item.unit} of {inventory_item.item_name} added to stock.",
+            noti_type='inventory' # Green icon for stock update
+            )
+            
+    return redirect('supplier_dashboard')
+
+
+
+
+from .models import Warden, Worker, LeaveRequest, Inventory, DeliveryOrder # DeliveryOrder import karein
+
+
+def warden_dashboard(request):
+
+    if not request.user.is_authenticated:
+        return redirect('warden_login')
+
+    try:
+        warden = Warden.objects.get(user=request.user)
+    except Warden.DoesNotExist:
+        return redirect('warden_login')
+
+    # 1. DATA FETCHING
+    worker_count = Worker.objects.count()
+    
+    # 2. LEAVE REQUESTS
+    pending_requests = LeaveRequest.objects.filter(status='Pending').order_by('-created_at')[:3]
+    pending_count = LeaveRequest.objects.filter(status='Pending').count()
+
+    # 3. 🔹 INCOMING SHIPMENTS & OTP LOGIC 🔹
+    # Hum 'DISPATCHED' status waale orders fetch kar rahe hain jo raste mein hain
+    incoming_shipments = DeliveryOrder.objects.filter(status='DISPATCHED').order_by('-created_at')
+
+    # 4. LOW STOCK LOGIC
+    # Static data ki jagah ab hum original items fetch kar sakte hain
+    low_stock_items = []
+    all_inventory = Inventory.objects.all()
+    for item in all_inventory:
+        if item.current_stock < (item.required_stock * 0.5): # 50% threshold
+            low_stock_items.append({
+                'name': item.item_name,
+                'current': item.current_stock,
+                'required': item.required_stock,
+                'percent': (item.current_stock / item.required_stock) * 100
+            })
+
+    # 5. RENDER WITH CONTEXT
+    return render(request, 'Shree1/dashboardWarden.html', {
+        'warden': warden,
+        'worker_count': worker_count,
+        'pending_requests': pending_requests,
+        'pending_count': pending_count,
+        'incoming_shipments': incoming_shipments, # 👈 Yeh HTML mein OTP dikhayega
+        'low_stock_items': low_stock_items,
+    })
+    
+from io import BytesIO
+from django.core.files.base import ContentFile
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+import pandas as pd
+
+
+def _store_generated_report(request, *, title, report_type, filename, content_bytes):
+    GeneratedReport.objects.create(
+        title=title,
+        report_type=report_type,
+        generated_by=request.user if getattr(request, 'user', None) and request.user.is_authenticated else None,
+        file=ContentFile(content_bytes, name=filename),
+    )
+
+
+def worker_report(request):
+    workers = UniversityID.objects.filter(role='worker').order_by('full_name')
+    report_data = []
+
+    for worker in workers:
+        attendance = Attendance.objects.filter(worker_master=worker)
+        report_data.append({
+            'id': worker.id,
+            'worker_name': worker.full_name,
+            'present': attendance.filter(status='Present').count(),
+            'absent': attendance.filter(status='Absent').count(),
+        })
+
+    return render(request, 'Shree1/worker_report.html', {
+        'workers': report_data
+    })
+
+
+def download_worker_report(request):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elements = []
+
+    styles = getSampleStyleSheet()
+    generated_on = date.today()
+
+    elements.append(Paragraph("Worker Attendance Report", styles['Title']))
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph(f"Date: {generated_on}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+
+    data = [['Worker Name', 'Present', 'Absent']]
+
+    workers = UniversityID.objects.filter(role='worker').order_by('full_name')
+    for worker in workers:
+        attendance = Attendance.objects.filter(worker_master=worker)
+        data.append([
+            worker.full_name,
+            attendance.filter(status='Present').count(),
+            attendance.filter(status='Absent').count(),
+        ])
+
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.blue),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    elements.append(table)
+    doc.build(elements)
+
+    pdf_bytes = buffer.getvalue()
+    filename = f"worker_report_{generated_on.strftime('%Y%m%d')}.pdf"
+    _store_generated_report(
+        request,
+        title=f"Worker Attendance Report - {generated_on}",
+        report_type='summary_pdf',
+        filename=filename,
+        content_bytes=pdf_bytes,
+    )
+
+    admin_user = User.objects.filter(role='admin').first() or User.objects.filter(is_superuser=True).first()
+    if admin_user:
+        Notification.objects.create(
+            recipient=admin_user,
+            message=f"Attendance Report was generated and saved on {generated_on}.",
+            noti_type='report'
+        )
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+def worker_chart(request, worker_id):
+    worker = get_object_or_404(UniversityID, id=worker_id, role='worker')
+
+    month = int(request.GET.get('month', datetime.now().month))
+    year = int(request.GET.get('year', datetime.now().year))
+
+    records = Attendance.objects.filter(
+        worker_master=worker,
+        date__month=month,
+        date__year=year
+    ).order_by('date')
+
+    dates = []
+    status = []
+
+    for record in records:
+        dates.append(record.date.strftime("%d %b"))
+        status.append(record.status)
+
+    context = {
+        'worker': worker,
+        'worker_name': worker.full_name,
+        'dates': dates,
+        'status': status,
+    }
+
+    return render(request, 'Shree1/worker_chart.html', context)
+
+
+def export_worker_excel(request, worker_id):
+    worker = get_object_or_404(UniversityID, id=worker_id, role='worker')
+
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    records = Attendance.objects.filter(
+        worker_master=worker,
+        date__range=[start_date, end_date]
+    ).order_by('date')
+
+    data = []
+    for record in records:
+        data.append({
+            'Date': record.date,
+            'Status': record.status
+        })
+
+    df = pd.DataFrame(data)
+    buffer = BytesIO()
+    df.to_excel(buffer, index=False)
+    excel_bytes = buffer.getvalue()
+
+    safe_name = worker.full_name.replace(' ', '_')
+    filename = f"{safe_name}_{start_date}_to_{end_date}.xlsx"
+    _store_generated_report(
+        request,
+        title=f"{worker.full_name} Attendance Report ({start_date} to {end_date})",
+        report_type='worker_excel',
+        filename=filename,
+        content_bytes=excel_bytes,
+    )
+
+    response = HttpResponse(
+        excel_bytes,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+from django.contrib.auth import logout
+
+
+def logout_view(request):
+    logout(request)
+    request.session.flush()
+    return redirect('welcome_role')
+
+
 
 def admin_inventory(request):
-    # Saare inventory items fetch karein
     items = Inventory.objects.all()
-    
-    # 1. Critical Stock Count (20% se kam)
     critical_count = sum(1 for item in items if item.get_status == "Critical")
-    
-    # 2. Low Stock Count (50% se kam)
     low_count = sum(1 for item in items if item.get_status == "Low")
-    
-    # 3. Recent Daily Usage Data (Latest 10 entries)
-    # select_related se performance achi hogi kyunki item ka naam sath fetch hoga
     recent_usage = DailyUsage.objects.select_related('item').order_by('-date', '-id')[:10]
 
-    # Context dictionary jo HTML ko data pass karega
     context = {
         'items': items,
         'critical_count': critical_count,
         'low_count': low_count,
         'recent_usage': recent_usage,
     }
-    
     return render(request, 'Shree1/admin_inventory.html', context)
-
-
-# accounts/views.py
-from django.contrib.auth import logout
-from django.shortcuts import redirect
-from django.contrib import messages
-
-def logout_view(request):
-    logout(request)           # Django user session delete karta hai
-    request.session.flush()   # ZAROORI: Browser ki saari memory/cookies uda deta hai
-    messages.success(request, "You have been logged out.")
-    return redirect('welcome_role') # Jahan aap bhejna chahte hain

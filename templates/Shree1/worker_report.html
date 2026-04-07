@@ -20,8 +20,10 @@
       <!-- ================= SIDEBAR ================= -->
       <aside class="sidebar">
         <div class="logo-section">
-          <div class="logo-text">
+          <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="SHREE Logo" class="nav-logo-file" style="width: 48px; height: 48px; border-radius: 10px; object-fit: contain;" />
+          <div>
             <h2 class="logo-name">SHREE</h2>
+            <p style="font-size: 10px; color: #94a3b8">Smart Hostel Record & Employee Evaluation</p>
           </div>
         </div>
 
@@ -76,24 +78,39 @@
                 <th>Worker Name</th>
                 <th>Total Present</th>
                 <th>Total Absent</th>
-                <th>Total Leaves</th>
+                <th>View Chart 📊</th>
+                <!-- NEW -->
+                <th>Download Excel 📥</th>
+                <!-- NEW -->
               </tr>
             </thead>
+            {% for worker in workers %}
+            <tr>
+              <td>{{ worker.worker_name }}</td>
+              <td>{{ worker.present }}</td>
+              <td>{{ worker.absent }}</td>
 
-            <tbody>
-              {% for data in report_data %}
-              <tr>
-                <td>{{ data.worker.name }}</td>
-                <td class="present">{{ data.present }}</td>
-                <td class="absent">{{ data.absent }}</td>
-                <td class="leave">{{ data.leave }}</td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="4">No data available</td>
-              </tr>
-              {% endfor %}
-            </tbody>
+              <!-- ✅ CHART BUTTON -->
+              <td>
+                <a href="{% url 'worker_chart' worker.id %}">
+                  <button>View</button>
+                </a>
+              </td>
+
+              <!-- ✅ EXCEL DOWNLOAD -->
+              <td>
+                <form
+                  method="get"
+                  action="{% url 'export_worker_excel' worker.id %}"
+                >
+                  <input type="date" name="start_date" required />
+                  <input type="date" name="end_date" required />
+
+                  <button type="submit">Download</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
           </table>
         </div>
       </div>

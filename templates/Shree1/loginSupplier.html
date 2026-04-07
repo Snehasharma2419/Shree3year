@@ -66,12 +66,16 @@
       <h1 class="login-title" style="color: #a855f7">Kutir Login</h1>
       <p class="subtitle">Enter your credentials to access the kutir portal</p>
 
-      {% if messages %} {% for message in messages %}
+      {% if messages %}
+      {% for message in messages %}
+      {% if message.tags == 'error' %}
       <div class="error-banner">
         <i class="fas fa-exclamation-circle"></i>
         {{ message }}
       </div>
-      {% endfor %} {% endif %}
+      {% endif %}
+      {% endfor %}
+      {% endif %}
 
       <form method="POST" action="{% url 'supplier_login' %}">
         {% csrf_token %}

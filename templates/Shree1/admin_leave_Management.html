@@ -22,16 +22,10 @@
     <div class="container">
       <aside class="sidebar">
         <div class="logo-section">
-          <img
-            src="{% static 'Shree1/images/logo_img.jpeg' %}"
-            alt="SHREE Logo"
-            class="logo-icon-img"
-          />
-          <div class="logo-text">
+          <img src="{% static 'Shree1/images/logo_img.jpeg' %}" alt="SHREE Logo" class="nav-logo-file" style="width: 48px; height: 48px; border-radius: 10px; object-fit: contain;" />
+          <div>
             <h2 class="logo-name">SHREE</h2>
-            <p class="logo-sub">
-              Smart Hostel Record &<br />Employee Evaluation
-            </p>
+            <p style="font-size: 10px; color: #94a3b8">Smart Hostel Record & Employee Evaluation</p>
           </div>
         </div>
 
@@ -88,6 +82,7 @@
                   <th>Start Date</th>
                   <th>End Date</th>
                   <th>Warden</th>
+                  <th>Attachment</th>
                   <th class="center-align">Status</th>
                   <th class="center-align">Action</th>
                 </tr>
@@ -99,7 +94,7 @@
     {% if req.is_warden_request %}
         <strong>Self (Warden):</strong> {{ req.warden.name }}
     {% else %}
-        {{ req.worker.name }} ({{ req.worker.worker_id }})
+        {{ req.display_worker_name }}
     {% endif %}
 </td>
                   <td class="muted-cell">{{ req.leave_type }}</td>
@@ -109,6 +104,13 @@
                   <td class="muted-cell">{{ req.end_date|date:"M. d, Y" }}</td>
                   <td class="muted-cell">
                     {{ req.warden.name }} ({{ req.warden.warden_id }})
+                  </td>
+                  <td class="muted-cell">
+                    {% if req.attachment %}
+                      <a href="{{ req.attachment.url }}" target="_blank">Open File</a>
+                    {% else %}
+                      No File
+                    {% endif %}
                   </td>
                   <td class="center-align">
                     <span class="status pending">Pending</span>
@@ -146,7 +148,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                  <td colspan="7" class="empty-state">
+                  <td colspan="8" class="empty-state">
                     No pending leave requests found.
                   </td>
                 </tr>
@@ -168,6 +170,7 @@
                   <th>Start Date</th>
                   <th>End Date</th>
                   <th>Warden</th>
+                  <th>Attachment</th>
                   <th class="center-align">Status</th>
                 </tr>
               </thead>
@@ -178,7 +181,7 @@
     {% if req.is_warden_request %}
         <strong>Self (Warden):</strong> {{ req.warden.name }}
     {% else %}
-        {{ req.worker.name }} ({{ req.worker.worker_id }})
+        {{ req.display_worker_name }}
     {% endif %}
 </td>
                   <td class="muted-cell">{{ req.leave_type }}</td>
@@ -188,6 +191,13 @@
                   <td class="muted-cell">{{ req.end_date|date:"M. d, Y" }}</td>
                   <td class="muted-cell">
                     {{ req.warden.name }} ({{ req.warden.warden_id }})
+                  </td>
+                  <td class="muted-cell">
+                    {% if req.attachment %}
+                      <a href="{{ req.attachment.url }}" target="_blank">Open File</a>
+                    {% else %}
+                      No File
+                    {% endif %}
                   </td>
                   <td class="center-align">
                     <span
@@ -199,7 +209,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                  <td colspan="6" class="empty-state">
+                  <td colspan="7" class="empty-state">
                     No leave history found yet.
                   </td>
                 </tr>
