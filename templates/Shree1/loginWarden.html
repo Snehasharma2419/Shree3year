@@ -60,7 +60,7 @@
 
         {% if messages %}
             {% for message in messages %}
-                {% if message.tags == 'error' %}
+                {% if 'auth_error' in message.tags %}
                 <div class="error-message-banner">
                     <i class="fas fa-exclamation-triangle"></i>
                     {{ message }}

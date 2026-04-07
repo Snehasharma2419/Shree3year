@@ -549,8 +549,8 @@ def inventory_view(request):
     search_query = request.GET.get('search', '')
     if search_query:
         items = all_inventory.filter(
-            models.Q(item_name__icontains=search_query) | 
-            models.Q(item_id__icontains=search_query)
+            Q(item_name__icontains=search_query) | 
+            Q(item_id__icontains=search_query)
         )
     else:
         items = all_inventory
@@ -637,9 +637,27 @@ def warden_leave_view(request):
         if s_date < date.today():
             messages.error(request, "Past dates are not allowed.")
             return redirect('warden_leave')
+        if e_date < s_date:
+            messages.error(request, "End date cannot be earlier than start date.")
+            return redirect('warden_leave')
 
         # Logic for Saving
         if action_type == 'self':
+            existing_self_leave = LeaveRequest.objects.filter(
+                warden=current_warden,
+                is_warden_request=True,
+                status='Approved',
+                start_date__lte=e_date,
+                end_date__gte=s_date,
+            ).order_by('start_date').first()
+
+            if existing_self_leave:
+                messages.error(
+                    request,
+                    f"You already have an approved leave from {existing_self_leave.start_date} to {existing_self_leave.end_date}. You cannot apply again for these dates."
+                )
+                return redirect('warden_leave')
+
             LeaveRequest.objects.create(
                 warden=current_warden,
                 is_warden_request=True,
@@ -671,6 +689,21 @@ def warden_leave_view(request):
             try:
                 worker_master = UniversityID.objects.get(university_id=w_id, role='worker')
                 worker_obj = Worker.objects.filter(worker_id=w_id).first()
+                existing_worker_leave = LeaveRequest.objects.filter(
+                    worker_master=worker_master,
+                    is_warden_request=False,
+                    status='Approved',
+                    start_date__lte=e_date,
+                    end_date__gte=s_date,
+                ).order_by('start_date').first()
+
+                if existing_worker_leave:
+                    messages.error(
+                        request,
+                        f"{worker_master.full_name} already has an approved leave from {existing_worker_leave.start_date} to {existing_worker_leave.end_date}. A new request for these dates is not allowed."
+                    )
+                    return redirect('warden_leave')
+
                 LeaveRequest.objects.create(
                     worker=worker_obj,
                     worker_master=worker_master,
@@ -798,7 +831,7 @@ def worker_login(request):
         if user and user.role == 'worker':
             login(request, user)
             return redirect('worker_dashboard')
-        messages.error(request, "Invalid Worker Credentials")
+        messages.error(request, "Invalid Worker Credentials", extra_tags='auth_error')
     return render(request, 'Shree1/loginWorker.html')
 
 
@@ -812,7 +845,7 @@ def warden_login(request):
         if user and user.role == 'warden':
             login(request, user)
             return redirect('warden_dashboard')
-        messages.error(request, "Invalid Warden Credentials")
+        messages.error(request, "Invalid Warden Credentials", extra_tags='auth_error')
     return render(request, 'Shree1/loginWarden.html')
 
 
@@ -830,7 +863,7 @@ def supplier_login(request):
             messages.success(request, "Welcome back, Kutir!")
             return redirect('supplier_dashboard')
         
-        messages.error(request, "Invalid Credentials for Kutir Supplier.")
+        messages.error(request, "Invalid Credentials for Kutir Supplier.", extra_tags='auth_error')
     return render(request, 'Shree1/loginSupplier.html')
 
 
@@ -846,7 +879,7 @@ def admin_login(request):
         if user and (user.role == 'admin' or user.is_staff):
             login(request, user)
             return redirect('admin_dashboard')
-        messages.error(request, "Invalid Admin Credentials")
+        messages.error(request, "Invalid Admin Credentials", extra_tags='auth_error')
     return render(request, 'Shree1/loginAdmin.html')
 
 def approve_leave_logic(request, leave_request_id):
@@ -886,6 +919,44 @@ def approve_leave_logic(request, leave_request_id):
     return redirect('admin_dashboard') # Ya jahan aapka admin dashboard ho
 
 def forget_password(request):
+    if request.method == "POST":
+        username = request.POST.get('username', '').strip()
+        selected_question = request.POST.get('security_question', '').strip()
+        entered_answer = request.POST.get('security_answer', '').strip()
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        password_error = validate_password(new_password, confirm_password)
+        if password_error:
+            messages.error(request, password_error)
+            return render(request, 'Shree1/forget_password.html')
+
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            messages.error(request, "User not found.")
+            return render(request, 'Shree1/forget_password.html')
+
+        if user.role not in ['worker', 'warden']:
+            messages.error(request, "Password reset is available only for worker and warden accounts.")
+            return render(request, 'Shree1/forget_password.html')
+
+        if user.security_question != selected_question:
+            messages.error(request, "Wrong security question selected. Please try again.")
+            return render(request, 'Shree1/forget_password.html')
+
+        if not user.security_answer or user.security_answer.strip() != entered_answer:
+            messages.error(request, "Wrong security answer. Please try again.")
+            return render(request, 'Shree1/forget_password.html')
+
+        user.set_password(new_password)
+        user.save()
+        messages.success(request, "Password reset successful. Please log in with your new password.")
+
+        if user.role == 'warden':
+            return redirect('warden_login')
+        return redirect('worker_login')
+
     return render(request, 'Shree1/forget_password.html')
 
 
@@ -1209,6 +1280,44 @@ def export_worker_excel(request, worker_id):
 
 
 def forget_password(request):
+    if request.method == "POST":
+        username = request.POST.get('username', '').strip()
+        selected_question = request.POST.get('security_question', '').strip()
+        entered_answer = request.POST.get('security_answer', '').strip()
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        password_error = validate_password(new_password, confirm_password)
+        if password_error:
+            messages.error(request, password_error)
+            return render(request, 'Shree1/forget_password.html')
+
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            messages.error(request, "User not found.")
+            return render(request, 'Shree1/forget_password.html')
+
+        if user.role not in ['worker', 'warden']:
+            messages.error(request, "Password reset is available only for worker and warden accounts.")
+            return render(request, 'Shree1/forget_password.html')
+
+        if user.security_question != selected_question:
+            messages.error(request, "Wrong security question selected. Please try again.")
+            return render(request, 'Shree1/forget_password.html')
+
+        if not user.security_answer or user.security_answer.strip() != entered_answer:
+            messages.error(request, "Wrong security answer. Please try again.")
+            return render(request, 'Shree1/forget_password.html')
+
+        user.set_password(new_password)
+        user.save()
+        messages.success(request, "Password reset successful. Please log in with your new password.")
+
+        if user.role == 'warden':
+            return redirect('warden_login')
+        return redirect('worker_login')
+
     return render(request, 'Shree1/forget_password.html')
 
 

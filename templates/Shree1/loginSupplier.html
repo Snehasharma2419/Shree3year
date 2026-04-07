@@ -68,7 +68,7 @@
 
       {% if messages %}
       {% for message in messages %}
-      {% if message.tags == 'error' %}
+      {% if 'auth_error' in message.tags %}
       <div class="error-banner">
         <i class="fas fa-exclamation-circle"></i>
         {{ message }}

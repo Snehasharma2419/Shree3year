@@ -12,6 +12,22 @@ from accounts.models import User, UniversityID, Worker, Warden, Supplier, Attend
 import re
 
 
+def _generate_next_university_id(role):
+    prefix = 'W' if role == 'warden' else 'E'
+    existing_ids = UniversityID.objects.filter(
+        role__iexact=role,
+        university_id__startswith=prefix
+    ).values_list('university_id', flat=True)
+
+    max_number = 100
+    for current_id in existing_ids:
+        match = re.search(r'(\d+)$', current_id or '')
+        if match:
+            max_number = max(max_number, int(match.group(1)))
+
+    return f"{prefix}{max_number + 1:03d}"
+
+
 
 
 def welcome_role(request):
@@ -68,6 +84,8 @@ def admin_user_management(request):  #sneha ka new update
         'unused_ids': unused_ids,
         'wardens': wardens,
         'workers': workers,
+        'next_worker_id': _generate_next_university_id('worker'),
+        'next_warden_id': _generate_next_university_id('warden'),
     }
     
     return render(request, 'Shree1/admin_user_management.html', context)
@@ -209,11 +227,11 @@ def admin_leave_Management(request):
             
             # Pehle decide karein ki notification kisko bhejna hai (Recipient)
             if leave_req.is_warden_request:
-                recipient_to_notify = leave_req.warden.user  # Warden user
+                recipient_to_notify = leave_req.warden.user if leave_req.warden and leave_req.warden.user else None
                 target_display_name = leave_req.warden.name
             else:
-                recipient_to_notify = leave_req.worker.user  # Worker user
-                target_display_name = leave_req.worker.name
+                recipient_to_notify = leave_req.worker.user if leave_req.worker and leave_req.worker.user else None
+                target_display_name = leave_req.display_worker_name
 
             # Notification sirf us user ko jayega jiski leave thi
             if recipient_to_notify:
@@ -277,9 +295,9 @@ def admin_profile(request):
 @login_required
 def add_university_id(request): #sneha edit
     if request.method == "POST":
-        full_name = request.POST.get('full_name')
-        uni_id = request.POST.get('uni_id')
-        role = request.POST.get('role')
+        full_name = request.POST.get('full_name', '').strip()
+        role = request.POST.get('role', 'worker').strip().lower()
+        uni_id = _generate_next_university_id(role)
 
         try:
             # Database mein naya ID save karna
@@ -291,11 +309,11 @@ def add_university_id(request): #sneha edit
 
             # ---> NAYA NOTIFICATION LOGIC <---
             Notification.objects.create(
-                message=f"New {role} authorized: {full_name}",
+                message=f"New {role} authorized: {full_name} ({uni_id})",
                 noti_type='user' # Blue icon aayega (user registration ke liye)
             )
 
-            messages.success(request, "New ID Authorized successfully!")
+            messages.success(request, f"New ID Authorized successfully! Generated ID: {uni_id}")
         except IntegrityError:
             messages.error(request, "This University ID already exists. Please use a different ID.")
 

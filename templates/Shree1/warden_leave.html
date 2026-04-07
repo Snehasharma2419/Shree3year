@@ -210,9 +210,81 @@
         border: 1px solid var(--border-color);
         border-radius: 6px;
       }
+      .message-popup-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        z-index: 1200;
+      }
+      .message-popup-card {
+        width: min(480px, 100%);
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 24px 22px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+        border: 1px solid #fecaca;
+        text-align: center;
+      }
+      .message-popup-card.success {
+        border-color: #bbf7d0;
+      }
+      .message-popup-icon {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 14px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fee2e2;
+        color: #b91c1c;
+        font-size: 1.25rem;
+      }
+      .message-popup-card.success .message-popup-icon {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .message-popup-card h3 {
+        margin: 0 0 10px;
+        font-size: 1.18rem;
+        color: #111827;
+      }
+      .message-popup-card p {
+        margin: 0 0 18px;
+        color: #4b5563;
+        line-height: 1.6;
+      }
+      .message-popup-btn {
+        border: none;
+        background: #2563eb;
+        color: #fff;
+        border-radius: 10px;
+        padding: 11px 18px;
+        font-weight: 700;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="message-popup-overlay" id="leaveMessagePopup">
+          <div class="message-popup-card {% if message.tags == 'success' %}success{% endif %}">
+            <div class="message-popup-icon">
+              <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}"></i>
+            </div>
+            <h3>{% if message.tags == 'success' %}Leave Updated{% else %}Leave Request Notice{% endif %}</h3>
+            <p>{{ message }}</p>
+            <button type="button" class="message-popup-btn" onclick="closeLeaveMessagePopup()">Okay</button>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+
     <div class="container">
       <aside class="sidebar">
         <div class="logo-section">
@@ -422,6 +494,12 @@
       document.getElementById("start_date").onchange = function () {
         document.getElementById("end_date").min = this.value;
       };
+      function closeLeaveMessagePopup() {
+        const popup = document.getElementById("leaveMessagePopup");
+        if (popup) {
+          popup.style.display = "none";
+        }
+      }
     </script>
   </body>
 </html>
