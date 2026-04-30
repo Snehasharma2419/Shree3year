@@ -8,23 +8,7 @@ phone_validator = RegexValidator(
     message="Phone number must be 10 digits and cannot start with 0."
 )
 
-class Worker(models.Model):
-    ...
-    phone_number = models.CharField(
-        max_length=10,
-        validators=[phone_validator],
-        blank=True,
-        null=True
-    )
-    
-class Warden(models.Model):
-    ...
-    phone_number = models.CharField(
-        max_length=10,
-        validators=[phone_validator],
-        blank=True,
-        null=True
-    )
+
 
 # -------------------------
 # CUSTOM USER MODEL
@@ -108,7 +92,7 @@ class Worker(models.Model):
     email = models.EmailField(blank=True, null=True)
     phone_number = models.CharField(max_length=10, validators=[phone_validator], blank=True, null=True)
     admin_id = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='managed_workers')
-    is_approved = models.BooleanField(default=False)
+    
     leave_balance = models.IntegerField(default=15)
     
     def save(self, *args, **kwargs):
